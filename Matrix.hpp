@@ -1,20 +1,20 @@
 /*
- *  Matrix is the fixed size array of fixed sized arrays.
+ *  Matrix is the fixed size vector of fixed sized vectors.
  */
 
 
-#include <array>
+#include <vector>
 #include <functional>
 
 #ifndef _MATRIX_HPP_
 #define _MATRIX_HPP_
 
-template <typename T, size_t N, size_t M>
-class Matrix : public std::array<std::array<T, M>, N> {
+template <typename T>
+class Matrix : public std::vector<std::vector<T>> {
 public:
-    typedef std::array<std::array<T, M>, N> base_type;
-    typedef std::array<T, N> column;
-    typedef std::array<T, M> line, raw;
+    typedef std::vector<std::vector<T>> base_type;
+    typedef std::vector<T> column;
+    typedef std::vector<T> line, raw;
     typedef T value_type;
     typedef value_type &reference;
     typedef value_type *pointer;
@@ -22,10 +22,32 @@ public:
     typedef const value_type *const_pointer;
 
 public:
-    Matrix() {}
-    Matrix(const T &val)
+    Matrix(size_t in_N = 0, size_t in_M = 0,
+           const value_type &val = value_type())
+        : base_type(in_N,line(in_M, val))
+        , m_N(in_N)
+        , m_M(in_M)
+    {}
+    template<typename F, typename ...Args>
+    Matrix (size_t in_N, size_t in_M,
+            const F &f,
+            Args... args)
+        : base_type(in_N,line(in_M))
+        , m_N(in_N)
+        , m_M(in_M)
     {
-        fill(val);
+        for (size_t i = 0; i< m_N; ++i) for (size_t j = 0; j < m_M; ++j) {
+            (*this)[i][j] = f(i,j, args...);
+        }
+    }
+
+    size_t N() const
+    {
+        return m_N;
+    }
+    size_t M() const
+    {
+        return m_M;
     }
 
     using base_type::at;
@@ -53,15 +75,14 @@ public:
     }
     column get_column(size_t j) const
     {
-        column result;
-        for (size_t i = 0; i < N; ++i) {
+        column result(m_N);
+        for (size_t i = 0; i < m_N; ++i) {
             result[i] = at(i,j);
         }
         return result;
     }
-    template<typename ...Args>
-    void foreach (const std::function<void(reference, Args...)> &f,
-                  Args... args)
+    template<typename F, typename ...Args>
+    void foreach (const F &f, Args... args)
     {
         for (line &l : (*this)) {
             for (reference val : l) {
@@ -69,9 +90,8 @@ public:
             }
         }
     }
-    template<typename ...Args>
-    void foreach (const std::function<void (const_reference, Args...)> &f,
-                  Args... args) const
+    template<typename F, typename ...Args>
+    void foreach (const F &f, Args... args) const
     {
         for (const line &l : (*this)) {
             for (const_reference val : l) {
@@ -79,6 +99,8 @@ public:
             }
         }
     }
+private:
+    size_t m_N, m_M;
 };
 
 #endif /* Matrix.hpp */
