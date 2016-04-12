@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <functional>
+#include <utility>
 
 #ifndef _MATRIX_HPP_
 #define _MATRIX_HPP_
@@ -20,6 +21,7 @@ public:
     typedef value_type *pointer;
     typedef const value_type &const_reference;
     typedef const value_type *const_pointer;
+    typedef std::pair<size_t, size_t> position;
 
 public:
     Matrix(size_t in_N = 0, size_t in_M = 0,
@@ -29,9 +31,7 @@ public:
         , m_M(in_M)
     {}
     template<typename F, typename ...Args>
-    Matrix (size_t in_N, size_t in_M,
-            const F &f,
-            Args... args)
+    Matrix (size_t in_N, size_t in_M, const F &f, Args... args)
         : base_type(in_N,line(in_M))
         , m_N(in_N)
         , m_M(in_M)
@@ -58,6 +58,38 @@ public:
     const_reference at(size_t i, size_t j) const
     {
         return at(i).at(j);
+    }
+    reference at(const position &pos)
+    {
+        return at(pos.first,pos.second);
+    }
+    const_reference at(const position &pos) const
+    {
+        return at(pos.first,pos.second);
+    }
+    reference operator()(size_t i, size_t j)
+    {
+        return at(i, j);
+    }
+    const_reference operator()(size_t i, size_t j) const
+    {
+        return at(i, j);
+    }
+    reference operator()(const position &pos)
+    {
+        return at(pos);
+    }
+    const_reference operator()(const position &pos) const
+    {
+        return at(pos);
+    }
+    reference operator  [] (const position &pos)
+    {
+        return at(pos);
+    }
+    const_reference operator  [] (const position &pos) const
+    {
+        return at(pos);
     }
     void fill (const value_type &val)
     {
