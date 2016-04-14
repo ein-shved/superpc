@@ -35,11 +35,11 @@ const net &Step::at(size_t i) const
 }
 reference Step::at(size_t i, size_t j)
 {
-    return at().at(i).at(j);
+    return at().at(local(i,j));
 }
 const_reference Step::at(size_t i, size_t j) const
 {
-    return at().at(i).at(j);
+    return at().at(local(i,j));
 }
 reference Step::at(const position &pos)
 {
@@ -89,6 +89,23 @@ const net &Step::operator()(size_t i) const
 {
     return at(i);
 }
+position Step::global (size_t i, size_t j) const
+{
+    return at().global(i,j);
+}
+position Step::global (const position &pos) const
+{
+    return at().global(pos);
+}
+position Step::local (size_t i, size_t j) const
+{
+    return at().local(i,j);
+}
+position Step::local (const position &pos) const
+{
+    return at().local(pos);
+}
+
 Step::operator net &()
 {
     return at();
@@ -97,12 +114,53 @@ Step::operator const net &() const
 {
     return at();
 }
-void Step::next()
+unsigned Step::operator ()() const
 {
+    return m_step;
+}
+unsigned Step::next()
+{
+    size_t Hi, Hj;
+
     net *ptr = base_type::at(size() - 1);
     for (size_t i = size() - 1; i > 0; --i) {
         base_type::at(i) = base_type::at(i-1);
     }
     (*ptr) = at(0);
+
+    ++m_step;
+    on_start(m_step);
+    Hi = at().Hi();
+    Hj = at().Hj();
+    for (size_t i = 0; i < Hi; ++i) for (size_t j = 0; j < Hj; ++j) {
+        (*ptr)[i][j] = calc(global(i,j));
+    }
     base_type::at(0) = ptr;
+    on_stop(m_step);
+
+    return m_step;
+}
+template <typename T>
+static T &step_store(vector<T> &v, size_t i)
+{
+    if (i >= v.size()) {
+        v.resize(i+1);
+    }
+    return v[i];
+}
+line &Step::store_up(size_t i)
+{
+    return step_store(m_top, i);
+}
+line &Step::store_down(size_t i)
+{
+    return step_store(m_bottom, i);
+}
+column &Step::store_right(size_t j)
+{
+    return step_store(m_left, j);
+}
+column &Step::store_left(size_t j)
+{
+    return step_store(m_right, j);
 }

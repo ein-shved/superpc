@@ -107,6 +107,23 @@ public:
         return index_relative(0, j);
     }
 
+    position global (size_t i, size_t j) const
+    {
+        return {m_I * Hi() + i, m_J * Hj() + j};
+    }
+    position global (const position &pos) const
+    {
+        return global(pos.first, pos.second);
+    }
+    position local (size_t i, size_t j) const
+    {
+        return { i - m_I * Hi(), j- m_J * Hj()};
+    }
+    position local (const position &pos) const
+    {
+        return local(pos.first, pos.second);
+    }
+
     const line &top(size_t i = 1) const {
         return this->at(i);
     }
@@ -133,8 +150,8 @@ private:
         m_index = index;
         m_Nc = m_N / Hi;
         m_Mc = m_M / Hj;
-        m_I = index / m_Nc;
-        m_J = index % m_Nc;
+        m_I = index / m_Mc;
+        m_J = index % m_Mc;
     }
 private:
     size_t m_N, m_M;

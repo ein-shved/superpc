@@ -35,11 +35,15 @@ public:
             base_type::at(i) = new net(index, N, M, Hi, Hj, f, args...);
         }
     }
-    ~Step();
+    virtual ~Step();
+
+    /* Passes indexes from all over the entire net */
+    virtual const_reference calc (const position &pos) = 0;
 
     net &at(size_t i = 0);
     const net &at(size_t i = 0) const;
 
+    /* This operator gets the indexes from all over the entire net */
     reference at(size_t i, size_t j);
     const_reference at(size_t i, size_t j) const;
 
@@ -61,15 +65,31 @@ public:
     net &operator()(size_t i = 0);
     const net &operator()(size_t i = 0) const;
 
+    position global (size_t i, size_t j) const;
+    position global (const position &pos) const;
+    position local (size_t i, size_t j) const;
+    position local (const position &pos) const;
+
     operator net &();
     operator const net &() const;
 
-    virtual void next();
+    unsigned operator ()() const;
 
-    void send_up(size_t i = 0);
-    void send_down(size_t i = 0);
-    void send_left(size_t j = 0);
-    void send_right(size_t j = 0);
+    unsigned next();
+    virtual void on_start(unsigned step);
+    virtual void on_stop(unsigned step);
+
+    line &store_up(size_t i = 0);
+    line &store_down(size_t i = 0);
+    column &store_right(size_t j = 0);
+    column &store_left(size_t j = 0);
+private:
+    unsigned m_step = 0;
+    std::vector<line> m_top;
+    std::vector<line> m_bottom;
+    std::vector<column> m_left;
+    std::vector<column> m_right;
+
 };
 
 #endif /* Step.hpp */
