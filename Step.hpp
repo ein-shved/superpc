@@ -11,7 +11,7 @@
 class Step : public std::vector<Net<double> *> {
 public:
     typedef Net<double> net;
-    typedef std::vector<Net<double> *>base_type;
+    typedef std::vector<net *>base_type;
     typedef typename net::matrix matrix;
     typedef typename matrix::line line;
     typedef typename matrix::raw raw;
@@ -24,21 +24,18 @@ public:
     typedef typename matrix::position position;
 
 public:
-    Step(size_t len, size_t index, size_t N, size_t M, size_t Hi, size_t Hj,
-            double val = 0);
-    template<typename F, typename ...Args>
-    Step(size_t len, size_t index, size_t N, size_t M, size_t Hi, size_t Hj,
-            const F &f, Args ... args)
-        : base_type(len)
+    template<typename ...Args>
+    Step(size_t len, Args ... args)
+        : base_type(len, NULL)
     {
-        for (size_t i = 0; i < size(); ++i) {
-            base_type::at(i) = new net(index, N, M, Hi, Hj, f, args...);
+        for (size_t i = 0; i < len; ++i) {
+            base_type::at(i) = new net(args...);
         }
     }
     virtual ~Step();
 
     /* Passes indexes from all over the entire net */
-    virtual const_reference calc (const position &pos) = 0;
+    virtual double calc (const position &pos) = 0;
 
     net &at(size_t i = 0);
     const net &at(size_t i = 0) const;
@@ -73,7 +70,7 @@ public:
     operator net &();
     operator const net &() const;
 
-    unsigned operator ()() const;
+    unsigned step() const;
 
     unsigned next();
     virtual void on_start(unsigned step);
@@ -83,6 +80,40 @@ public:
     line &store_down(size_t i = 0);
     column &store_right(size_t j = 0);
     column &store_left(size_t j = 0);
+
+    size_t N() const
+    {
+        return at().N();
+    }
+    size_t M() const
+    {
+        return at().M();
+    }
+    size_t Hi() const
+    {
+        return at().Hi();
+    }
+    size_t Hj() const
+    {
+        return at().Hj();
+    }
+    size_t Nc() const
+    {
+        return at().Nc();
+    }
+    size_t Mc() const
+    {
+        return at().Mc();
+    }
+    size_t I() const
+    {
+        return at().I();
+    }
+    size_t J() const
+    {
+        return at().J();
+    }
+
 private:
     unsigned m_step = 0;
     std::vector<line> m_top;

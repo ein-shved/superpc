@@ -24,7 +24,7 @@ public:
 
 public:
     Net(size_t index, size_t N, size_t M, size_t Hi, size_t Hj,
-            value_type& val = value_type())
+            const_reference val = value_type())
         : matrix(Hi, Hj, val)
     {
         p_init(index, N, M, Hi, Hj);

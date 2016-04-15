@@ -12,14 +12,6 @@ typedef typename Step::const_reference const_reference;
 typedef typename Step::const_pointer const_pointer;
 typedef typename Step::position position;
 
-Step::Step(size_t len, size_t index, size_t N, size_t M, size_t Hi, size_t Hj,
-        double val)
-    : base_type(len)
-{
-    for (size_t i = 0; i < size(); ++i) {
-        base_type::at(i) = new net(index, N, M, Hi, Hj, val);
-    }
-}
 Step::~Step()
 {
     for (auto n : (*this)) delete n;
@@ -114,7 +106,7 @@ Step::operator const net &() const
 {
     return at();
 }
-unsigned Step::operator ()() const
+unsigned Step::step() const
 {
     return m_step;
 }
@@ -140,6 +132,10 @@ unsigned Step::next()
 
     return m_step;
 }
+void Step::on_start(unsigned step)
+{}
+void Step::on_stop(unsigned step)
+{}
 template <typename T>
 static T &step_store(vector<T> &v, size_t i)
 {

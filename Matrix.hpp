@@ -6,14 +6,15 @@
 #include <vector>
 #include <functional>
 #include <utility>
+#include <cstddef>
 
 #ifndef _MATRIX_HPP_
 #define _MATRIX_HPP_
 
 template <typename T>
-class Matrix : public std::vector<std::vector<T>> {
+class Matrix : public std::vector< std::vector<T> > {
 public:
-    typedef std::vector<std::vector<T>> base_type;
+    typedef std::vector<std::vector<T> > base_type;
     typedef std::vector<T> column;
     typedef std::vector<T> line, raw;
     typedef T value_type;
