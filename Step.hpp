@@ -62,6 +62,9 @@ public:
     net &operator()(size_t i = 0);
     const net &operator()(size_t i = 0) const;
 
+    net *operator ->();
+    const net *operator ->() const;
+
     position global (size_t i, size_t j) const;
     position global (const position &pos) const;
     position local (size_t i, size_t j) const;

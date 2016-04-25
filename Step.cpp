@@ -106,6 +106,15 @@ Step::operator const net &() const
 {
     return at();
 }
+
+net *Step::operator ->()
+{
+    return &at();
+}
+const net *Step::operator ->() const
+{
+    return &at();
+}
 unsigned Step::step() const
 {
     return m_step;

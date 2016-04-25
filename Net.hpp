@@ -71,6 +71,23 @@ public:
         return m_J;
     }
 
+    position matrix_pos(size_t i, size_t j) const
+    {
+        return {i / Hi(), j / Hj()};
+    }
+    position matrix_pos(position &pos) const
+    {
+        return matrix_pos(pos.first, pos.second);
+    }
+    size_t global_index(size_t i, size_t j) const
+    {
+        return index(matrix_pos(i, j));
+    }
+    size_t global_index(const position &pos) const
+    {
+        return global_index(pos.first, pos.second);
+    }
+
     size_t index() const
     {
         return m_index;
@@ -78,8 +95,12 @@ public:
     size_t index(size_t i, size_t j) const
     {
         if (i >= m_Nc) i = m_Nc - 1;
-        if (j > m_Mc) j = m_Mc - 1;
+        if (j >= m_Mc) j = m_Mc - 1;
         return m_Nc * i + j;
+    }
+    size_t index(const position &pos) const
+    {
+        return index(pos.first, pos.second);
     }
     size_t index_relative(ssize_t i = 0, ssize_t j = 0) const
     {
@@ -117,7 +138,7 @@ public:
     }
     position local (size_t i, size_t j) const
     {
-        return { i - m_I * Hi(), j- m_J * Hj()};
+        return { i - m_I * Hi(), j - m_J * Hj()};
     }
     position local (const position &pos) const
     {
