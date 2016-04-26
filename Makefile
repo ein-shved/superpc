@@ -6,13 +6,14 @@ LDFLAGS     =   -fopenmp -lm
 
 all: tests Step.o
 
-tests: matrix-test step-test
+tests: matrix-test step-test exchanger-test
 
 matrix-test.o: Matrix-test.cpp Matrix.hpp
 	$(CXX) $(CFLAGS) -c -o $@ $<
 
 matrix-test: matrix-test.o
 	$(CXX) $(LDFLAGS) -o $@ $^
+
 
 Step.o: Step.cpp Step.hpp Net.hpp Matrix.hpp
 	$(CXX) $(CFLAGS) -c -o $@ $<
@@ -21,6 +22,16 @@ step-test.o: Step-test.cpp Step.hpp Matrix.hpp Net.hpp
 	$(CXX) $(CFLAGS) -c -o $@ $<
 
 step-test: step-test.o Step.o
+	$(CXX) $(LDFLAGS) -o $@ $^
+
+
+Exchanger.o: Exchanger.cpp Exchanger.hpp Step.hpp Net.hpp Matrix.hpp
+	$(CXX) $(CFLAGS) -c -o $@ $<
+
+exchanger-test.o: Exchanger-test.cpp Exchanger.hpp Step.hpp Matrix.hpp Net.hpp
+	$(CXX) $(CFLAGS) -c -o $@ $<
+
+exchanger-test: exchanger-test.o Exchanger.o Step.o
 	$(CXX) $(LDFLAGS) -o $@ $^
 
 clean:

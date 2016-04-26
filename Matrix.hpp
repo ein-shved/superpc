@@ -22,7 +22,7 @@ public:
     typedef value_type *pointer;
     typedef const value_type &const_reference;
     typedef const value_type *const_pointer;
-    typedef std::pair<size_t, size_t> position;
+    typedef std::pair<ssize_t, ssize_t> position;
 
 public:
     Matrix(size_t in_N = 0, size_t in_M = 0,

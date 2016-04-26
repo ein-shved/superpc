@@ -102,28 +102,28 @@ public:
     {
         return index(pos.first, pos.second);
     }
-    size_t index_relative(ssize_t i = 0, ssize_t j = 0) const
+    ssize_t index_relative(ssize_t i = 0, ssize_t j = 0) const
     {
-        ssize_t I = m_I + i; J = m_J + j;
-        if (I < 0) I = 0;
-        if (I >= m_Nc) I = m_Nc - 1;
-        if (J < 0) J = 0;
-        if (J >= m_Mc) J = m_Mc - 1;
-        return index(I, J);
+        ssize_t l_I = m_I + i, l_J = m_J + j;
+        if (l_I < 0) l_I = 0;
+        if (l_I >= (ssize_t)m_Nc) l_I = m_Nc - 1;
+        if (l_J < 0) l_J = 0;
+        if (l_J >= (ssize_t)m_Mc) l_J = m_Mc - 1;
+        return index(l_I, l_J);
     }
-    size_t index_top(size_t i = 1) const
+    ssize_t index_top(size_t i = 1) const
     {
         return index_relative(-(ssize_t)i, 0);
     }
-    size_t index_bottom(size_t i = 1) const
+    ssize_t index_bottom(size_t i = 1) const
     {
         return index_relative(i, 0);
     }
-    size_t index_left(size_t j = 1) const
+    ssize_t index_left(size_t j = 1) const
     {
         return index_relative(0, -(ssize_t)j);
     }
-    size_t index_right(size_t j = 1) const
+    ssize_t index_right(size_t j = 1) const
     {
         return index_relative(0, j);
     }
@@ -152,16 +152,16 @@ public:
         return this->at(i);
     }
     const line &bottom(size_t i = 1) const {
-        return this->at(Hi - i);
+        return this->at(Hi() - i);
     }
     line &bottom(size_t i = 1) {
-        return this->at(Hi - i);
+        return this->at(Hi() - i);
     }
     column left(size_t j = 1) {
-        return this->get_column(Hj + j);
+        return this->get_column(j);
     }
     column right(size_t j = 1) {
-        return this->get_column(Hj - j);
+        return this->get_column(Hj() - j);
     }
 private:
     void p_init(size_t index, size_t N, size_t M, size_t Hi, size_t Hj)
