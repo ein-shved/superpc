@@ -26,7 +26,6 @@ public:
 
 public:
     enum CType {TL=0, TR=1, BR=2, BL=3};
-    enum OType {WRITE=0, W=0, READ=1, R=1};
 
 public:
 
@@ -34,61 +33,60 @@ public:
     Exchanger(size_t overlap, size_t len, size_t index, size_t N, size_t M,
               size_t Hi, size_t Hj, Args ... args)
         : Step(len, index, N, M, Hi, Hj, args...)
-        , m_top1(overlap, line(Hj))
-        , m_top2(overlap, line(Hj))
-        , m_bottom1(overlap, line(Hj))
-        , m_bottom2(overlap, line(Hj))
-        , m_left1(overlap, column(Hi))
-        , m_left2(overlap, column(Hi))
-        , m_right1(overlap, column(Hi))
-        , m_right2(overlap, column(Hi))
-        , m_corner1({matrix(overlap, overlap), matrix(overlap, overlap),
-                    matrix(overlap, overlap), matrix(overlap, overlap)})
-        , m_corner2({matrix(overlap, overlap), matrix(overlap, overlap),
-                    matrix(overlap, overlap), matrix(overlap, overlap)})
-    {}
+    {
+        for (size_t i=0; i<len; ++i) {
+            m_bottom.push_back(new edge_t(overlap, line(Hj)));
+            m_top.push_back(new edge_t(overlap, line(Hj)));
+            m_left.push_back(new edge_t(overlap, column(Hi)));
+            m_right.push_back(new edge_t(overlap, column(Hi)));
+            m_corner.push_back(new corner_t({
+                        matrix(overlap, overlap),
+                        matrix(overlap, overlap),
+                        matrix(overlap, overlap),
+                        matrix(overlap, overlap)}));
+        }
+    }
+    virtual ~Exchanger();
+
+    net &at(size_t i = 0);
+    const net &at(size_t i = 0) const;
 
     /* This operator gets the indexes from all over the entire net */
-    using Step::at;
-    double at(size_t i, size_t j) const;
-    double at(size_t i, size_t j);
-    double at(const position &pos) const;
-    double at(const position &pos);
+    double at(size_t i, size_t j, size_t l = 0) const;
+    double at(size_t i, size_t j, size_t l = 0);
+    double at(const position &pos, size_t l = 0) const;
+    double at(const position &pos, size_t l = 0);
 
-    edge_t &top(OType t);
-    edge_t &bottom(OType t);
-    edge_t &left(OType t);
-    edge_t &right(OType t);
-    corner_t &corner(OType t);
+    edge_t &top(size_t t);
+    edge_t &bottom(size_t t);
+    edge_t &left(size_t t);
+    edge_t &right(size_t t);
+    corner_t &corner(size_t t);
 
-    const edge_t &top(OType t) const;
-    const edge_t &bottom(OType t) const;
-    const edge_t &left(OType t) const;
-    const edge_t &right(OType t) const;
-    const corner_t &corner(OType t) const;
+    const edge_t &top(size_t t) const;
+    const edge_t &bottom(size_t t) const;
+    const edge_t &left(size_t t) const;
+    const edge_t &right(size_t t) const;
+    const corner_t &corner(size_t t) const;
 
-    double top(const position &pos) const;
-    double bottom(const position &pos) const;
-    double left(const position &pos) const;
-    double right(const position &pos) const;
-    double corner(CType c, const position &pos) const;
+    double top(const position &pos, size_t l = 0) const;
+    double bottom(const position &pos, size_t l = 0) const;
+    double left(const position &pos, size_t l = 0) const;
+    double right(const position &pos, size_t l = 0) const;
+    double corner(CType c, const position &pos, size_t l = 0) const;
 
     position abs(const position &pos) const;
-    void swap();
+
+public:
+    virtual void v_next();
+    const size_t W = 0;
 
 private:
-    /* TODO use two buffers for read and write and swap them */
-    edge_t m_top1, m_top2;
-    edge_t m_bottom1, m_bottom2;
-    edge_t m_left1, m_left2;
-    edge_t m_right1, m_right2;
-    corner_t m_corner1, m_corner2;
-
-    edge_t *m_top[2] = {&m_top1, &m_top2};
-    edge_t *m_bottom[2] = {&m_bottom1, &m_bottom2};
-    edge_t *m_left[2] = {&m_left1, &m_left2};
-    edge_t *m_right[2] = {&m_right1, &m_right2};
-    corner_t *m_corner[2] = {&m_corner1, &m_corner2};
+    std::vector<edge_t *> m_top;
+    std::vector<edge_t *> m_bottom;
+    std::vector<edge_t *> m_left;
+    std::vector<edge_t *> m_right;
+    std::vector<corner_t *> m_corner;
 };
 
 #endif /* exchanger.hpp */

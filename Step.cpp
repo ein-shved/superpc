@@ -121,25 +121,29 @@ unsigned Step::step() const
 }
 unsigned Step::next()
 {
+    ++m_step;
+    on_start(m_step);
+    v_next();
+    on_stop(m_step);
+
+    return m_step;
+}
+void Step::v_next()
+{
     size_t Hi, Hj;
 
     net *ptr = base_type::at(size() - 1);
     for (size_t i = size() - 1; i > 0; --i) {
         base_type::at(i) = base_type::at(i-1);
     }
-    (*ptr) = at(0);
+//    (*ptr) = at(0);
 
-    ++m_step;
-    on_start(m_step);
     Hi = at().Hi();
     Hj = at().Hj();
     for (size_t i = 0; i < Hi; ++i) for (size_t j = 0; j < Hj; ++j) {
         (*ptr)[i][j] = calc(global(i,j));
     }
     base_type::at(0) = ptr;
-    on_stop(m_step);
-
-    return m_step;
 }
 void Step::on_start(unsigned step)
 {}

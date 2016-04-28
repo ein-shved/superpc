@@ -117,6 +117,8 @@ public:
         return at().J();
     }
 
+protected:
+    virtual void v_next();
 private:
     unsigned m_step = 0;
     std::vector<line> m_top;

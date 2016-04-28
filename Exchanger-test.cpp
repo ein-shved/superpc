@@ -98,7 +98,6 @@ void SimpleStep::on_start(unsigned step)
     if (nb[1]) bottom(Exchanger::W)[0] = (*nb[1])->top();
     if (nb[2]) left(Exchanger::W)[0] = (*nb[2])->right();
     if (nb[3]) right(Exchanger::W)[0] = (*nb[3])->left();
-    swap();
 }
 
     #define N 10
