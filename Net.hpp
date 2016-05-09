@@ -105,10 +105,10 @@ public:
     ssize_t index_relative(ssize_t i = 0, ssize_t j = 0) const
     {
         ssize_t l_I = m_I + i, l_J = m_J + j;
-        if (l_I < 0) l_I = 0;
-        if (l_I >= (ssize_t)m_Nc) l_I = m_Nc - 1;
-        if (l_J < 0) l_J = 0;
-        if (l_J >= (ssize_t)m_Mc) l_J = m_Mc - 1;
+        if (l_I < 0) return -1;
+        if (l_I >= (ssize_t)m_Nc) return -1;
+        if (l_J < 0) return -1;
+        if (l_J >= (ssize_t)m_Mc) return -1;
         return index(l_I, l_J);
     }
     ssize_t index_top(size_t i = 1) const
