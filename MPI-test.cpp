@@ -18,7 +18,11 @@ public:
     template <typename ...Args>
     MPITest(Args ...args)
         : MPI_Exchanger(args...)
-    {}
+    {
+        if (index() == 0) {
+            at(0)[0][0] = 1;
+        }
+    }
     double calc(const position &pos);
     virtual void on_stop(unsigned step);
 
@@ -46,6 +50,17 @@ void MPITest::on_stop(unsigned step)
     send_recv_left();
     send_recv_right();
 }
+template<typename T>
+void print(const Matrix<T> &m)
+{
+    for (size_t i = 0; i < m.N(); ++i) {
+        for (size_t j = 0; j < m.M(); ++j) {
+            cout.width(5);
+            cout << m[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
 
     #define N 10
     #define M 20
@@ -59,9 +74,14 @@ void mpi(int &argc, char **&argv)
     MPI_Comm comm = MPI_COMM_WORLD;
     int rank;
     MPI_Comm_rank(comm, &rank);
+    cout << "Got runk " << rank << endl;
     MPITest mpi(comm, 1, 2, rank, N, M, Hi, Hj);
     for (int i = 0; i < Steps; ++i) {
         mpi.next();
+    }
+    Matrix<double> *result = mpi.sync_results();
+    if (result != NULL) {
+        print(*result);
     }
     MPI_Finalize();
 }

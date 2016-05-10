@@ -98,6 +98,13 @@ public:
         if (j >= m_Mc) j = m_Mc - 1;
         return m_Nc * i + j;
     }
+    position pos_of(size_t index) const
+    {
+        position pos;
+        pos.first = index / m_Mc * Hi();
+        pos.second = index % m_Mc * Hj();
+        return pos;
+    }
     size_t index(const position &pos) const
     {
         return index(pos.first, pos.second);
