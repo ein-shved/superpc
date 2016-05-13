@@ -20,15 +20,14 @@ int MPI_Exchanger::recv (size_t i, line &r, int dst, int tag)
 int MPI_Exchanger::send_recv (size_t i, const line &s, int s_tag,
         line &r, int r_tag, int dst)
 {
-    int result =  MPI_Sendrecv(s.data(), s.size(), MPI_DOUBLE, dst, s_tag*100 + i,
+    return MPI_Sendrecv(s.data(), s.size(), MPI_DOUBLE, dst, s_tag*100 + i,
                 r.data(), r.size(), MPI_DOUBLE, dst, r_tag*100 + i,
                 m_comm, MPI_STATUS_IGNORE);
-    return result;
 }
 
 void MPI_Exchanger::send_top(size_t i)
 {
-    const line &s = at(0)[i];
+    const line &s = (*this)->top();
     int dst = at(0).index_top();
     if (dst < 0 || dst == (int)at(0).index()) {
         return;
@@ -37,17 +36,17 @@ void MPI_Exchanger::send_top(size_t i)
 }
 void MPI_Exchanger::recv_top(size_t i)
 {
-    line &r = top(0)[i];
+    line &r = top(W)[i];
     int dst = at(0).index_top();
     if (dst < 0 || dst == (int)at(0).index()) {
         return;
     }
-    send(i, r, dst, tag_bottom);
+    recv(i, r, dst, tag_bottom);
 }
 void MPI_Exchanger::send_recv_top(size_t i)
 {
-    const line &s = at(0)[i];
-    line &r = top(0)[i];
+    const line &s = (*this)->top();
+    line &r = top(W)[i];
     int dst = at(0).index_top();
     if (dst < 0 || dst == (int)at(0).index()) {
         return;
@@ -65,17 +64,17 @@ void MPI_Exchanger::send_bottom(size_t i)
 }
 void MPI_Exchanger::recv_bottom(size_t i)
 {
-    line &r = bottom(0)[i];
+    line &r = bottom(W)[i];
     int dst = at(0).index_bottom();
     if (dst < 0 || dst == (int)at(0).index()) {
         return;
     }
-    send(i, r, dst, tag_top);
+    recv(i, r, dst, tag_top);
 }
 void MPI_Exchanger::send_recv_bottom(size_t i)
 {
     const line &s = at(0)[at(0).size() - 1 - i];
-    line &r = bottom(0)[i];
+    line &r = bottom(W)[i];
     int dst = at(0).index_bottom();
     if (dst < 0 || dst == (int)at(0).index()) {
         return;
@@ -93,7 +92,7 @@ void MPI_Exchanger::send_left(size_t i)
 }
 void MPI_Exchanger::recv_left(size_t i)
 {
-    line &r = left(0)[i];
+    line &r = left(W)[i];
     int dst = at(0).index_left();
     if (dst < 0 || dst == (int)at(0).index()) {
         return;
@@ -103,7 +102,7 @@ void MPI_Exchanger::recv_left(size_t i)
 void MPI_Exchanger::send_recv_left(size_t i)
 {
     const line s = at(0).get_column(i);
-    line &r = left(0)[i];
+    line &r = left(W)[i];
     int dst = at(0).index_left();
     if (dst < 0 || dst == (int)at(0).index()) {
         return;
@@ -121,7 +120,7 @@ void MPI_Exchanger::send_right(size_t i)
 }
 void MPI_Exchanger::recv_right(size_t i)
 {
-    line &r = right(0)[i];
+    line &r = right(W)[i];
     int dst = at(0).index_right();
     if (dst < 0 || dst == (int)at(0).index()) {
         return;
@@ -131,7 +130,7 @@ void MPI_Exchanger::recv_right(size_t i)
 void MPI_Exchanger::send_recv_right(size_t i)
 {
     const line s = at(0).get_column(at(0).Hj() - 1 - i);
-    line &r = right(0)[i];
+    line &r = right(W)[i];
     int dst = at(0).index_right();
     if (dst < 0 || dst == (int)at(0).index()) {
         return;
@@ -164,7 +163,7 @@ MPI_Exchanger::matrix *MPI_Exchanger::sync_master()
     m_result = new matrix(at(0).N(), at(0).M());
     sync_put(at(0), index());
     matrix r(at(0).Hi(), at(0).Hj());
-    for (size_t i = 1; i < at(0).I()*at(0).J(); ++i) {
+    for (size_t i = 1; i < at(0).Nc()*at(0).Mc(); ++i) {
         if (sync_recv(r, i) < 0) return NULL;
         if (sync_put(r, i) < 0) return NULL;
     }

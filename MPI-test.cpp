@@ -24,7 +24,7 @@ public:
         }
     }
     double calc(const position &pos);
-    virtual void on_stop(unsigned step);
+    virtual void on_start(unsigned step);
 
 };
 double MPITest::calc(const position &pos)
@@ -43,7 +43,7 @@ double MPITest::calc(const position &pos)
     return (long)result % 100000;
 
 }
-void MPITest::on_stop(unsigned step)
+void MPITest::on_start(unsigned step)
 {
     send_recv_top();
     send_recv_bottom();
