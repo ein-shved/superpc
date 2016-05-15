@@ -137,10 +137,6 @@ void MPI_Exchanger::send_recv_right(size_t i)
     }
     send_recv(i, s, tag_right, r, tag_left, dst);
 }
-void MPI_Exchanger::on_start(unsigned step)
-{}
-void MPI_Exchanger::on_stop(unsigned step)
-{}
 int MPI_Exchanger::index() const
 {
     return at(0).index();
@@ -156,6 +152,10 @@ MPI_Exchanger::matrix *MPI_Exchanger::sync_results()
     }
     sync_slave();
     return NULL;
+}
+MPI_Comm MPI_Exchanger::comm() const
+{
+    return m_comm;
 }
 MPI_Exchanger::matrix *MPI_Exchanger::sync_master()
 {

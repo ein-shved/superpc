@@ -35,9 +35,6 @@ enum {
 };
 
 public:
-    virtual void on_start(unsigned step);
-    virtual void on_stop(unsigned step);
-
     void send_top(size_t i = 0);
     void recv_top(size_t i = 0);
     void send_recv_top(size_t i = 0);
@@ -56,6 +53,7 @@ public:
     int index() const;
     int runk() const;
     matrix *sync_results();
+    MPI_Comm comm() const;
 private:
     int send (size_t i, const line &s, int dst, int tag);
     int recv (size_t i, line &r, int dst, int tag);

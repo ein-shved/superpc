@@ -130,20 +130,28 @@ unsigned Step::next()
 }
 void Step::v_next()
 {
-    size_t Hi, Hj;
-
-    net *ptr = base_type::at(size() - 1);
+    v_next_swap_begin();
+    v_next_iterate(*m_swap);
+    v_next_swap_end();
+}
+void Step::v_next_iterate(net &dst)
+{
+    size_t Hi = at().Hi();
+    size_t Hj = at().Hj();
+    for (size_t i = 0; i < Hi; ++i) for (size_t j = 0; j < Hj; ++j) {
+        dst[i][j] = calc(global(i,j));
+    }
+}
+void Step::v_next_swap_begin()
+{
+    m_swap = base_type::at(size() - 1);
     for (size_t i = size() - 1; i > 0; --i) {
         base_type::at(i) = base_type::at(i-1);
     }
-//    (*ptr) = at(0);
-
-    Hi = at().Hi();
-    Hj = at().Hj();
-    for (size_t i = 0; i < Hi; ++i) for (size_t j = 0; j < Hj; ++j) {
-        (*ptr)[i][j] = calc(global(i,j));
-    }
-    base_type::at(0) = ptr;
+}
+void Step::v_next_swap_end()
+{
+    base_type::at(0) = m_swap;
 }
 void Step::on_start(unsigned step)
 {}

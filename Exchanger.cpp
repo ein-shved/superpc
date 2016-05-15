@@ -130,12 +130,12 @@ Exchanger::position Exchanger::abs(const position &pos) const
     position res = pos;
     if (res.first < 0) {
         res.first = -1 - res.first;
-    } else while (res.first > (ssize_t)Hi()) {
+    } else while (res.first >= (ssize_t)Hi()) {
         res.first -= Hi();
     }
     if (res.second < 0) {
         res.second = -1 - res.second;
-    } else while (res.second > (ssize_t)Hj()) {
+    } else while (res.second >= (ssize_t)Hj()) {
         res.second -= Hj();
     }
     return res;

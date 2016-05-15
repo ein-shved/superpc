@@ -119,12 +119,16 @@ public:
 
 protected:
     virtual void v_next();
+    virtual void v_next_iterate(net &dst);
+    virtual void v_next_swap_begin();
+    virtual void v_next_swap_end();
 private:
     unsigned m_step = 0;
     std::vector<line> m_top;
     std::vector<line> m_bottom;
     std::vector<column> m_left;
     std::vector<column> m_right;
+    net *m_swap = NULL;
 
 };
 
