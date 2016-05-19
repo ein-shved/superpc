@@ -22,16 +22,30 @@ void print(const Matrix<T> &m)
         cout << endl;
     }
 }
+static double zero(double x, double y)
+{
+     return sqrt(abs(x*x - y*y)); 
+}
+static double left(double y)
+{
+     return sin(2*PI*y); 
+}
+static double right(double y)
+{
+     return 1-cos(2*PI*y); 
+}
+static double top(double x)
+{
+     return 0; 
+}
+static double bottom(double x)
+{
+     return sin(2*PI*x); 
+}
 int run(int rank, int N, int M, int Hi, int Hj, double eps)
 {
-    auto zero =
-        [](double x, double y) -> double { return sqrt(abs(x*x - y*y)); };
-    auto left = [](double y) -> double { return sin(2*PI*y); };
-    auto right = [](double y) -> double { return 1-cos(2*PI*y); };
-    auto top = [](double x) -> double { return 0; };
-    auto bottom = [](double x) -> double { return sin(2*PI*x); };
     SplitEdgeCondition edge (N, M);
-    Holes holes (RectangleHole(N/4, M/4, N/2 + N/3, (3*M)/4));
+    Holes holes;
     HoleCondition hole_cond(zero, N, M);
     MPI_Comm comm = MPI_COMM_WORLD;
 
@@ -40,6 +54,7 @@ int run(int rank, int N, int M, int Hi, int Hj, double eps)
     edge.right(right);
     edge.top(top);
     edge.bottom(bottom);
+    holes.append(RectangleHole(N/4, M/4, N/2 + N/3, (3*M)/4));
 
     Jacoby_Hole jkb(holes, hole_cond, edge, comm, 1, 2, rank, N, M, Hi, Hj);
     jkb.next(); // Fill up borders;

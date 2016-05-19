@@ -3,6 +3,8 @@
 #include <utility>
 
 #include <iostream>
+    
+const size_t Exchanger::W = 0;
 Exchanger::~Exchanger()
 {
     for (size_t i=0; i<size(); ++i) {
@@ -143,11 +145,11 @@ Exchanger::position Exchanger::abs(const position &pos) const
 void Exchanger::v_next()
 {
     size_t s = size() - 1;
-    auto t = m_top[s];
-    auto b = m_bottom[s];
-    auto l = m_left[s];
-    auto r = m_right[s];
-    auto c = m_corner[s];
+    edge_t *t = m_top[s];
+    edge_t *b = m_bottom[s];
+    edge_t *l = m_left[s];
+    edge_t *r = m_right[s];
+    corner_t *c = m_corner[s];
 
     for (size_t i = size() - 1; i >0; --i) {
         m_top[i] = m_top[i-1];

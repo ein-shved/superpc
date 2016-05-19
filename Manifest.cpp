@@ -42,8 +42,8 @@ void Manifest::v_next_iterate(Step::net &dst)
     size_t Hj = at().Hj();
 #pragma omp parallel
     {
-#pragma omp for collapse (2)
-        for (size_t i = 0; i < Hi; ++i) for (size_t j = 0; j < Hj; ++j) {
+#pragma omp for
+        for (int i = 0; i < Hi; ++i) for (int j = 0; j < Hj; ++j) {
             dst[i][j] = calc(global(i,j));
         }
 //#pragma omp barrier
@@ -63,8 +63,8 @@ double Manifest::resid (Step::net &dst)
     size_t Hi = at().Hi();
     size_t Hj = at().Hj();
     double eps = 0, e;
-#pragma omp for collapse (2)
-    for (size_t i = 0; i < Hi; ++i) for (size_t j = 0; j < Hj; ++j) {
+#pragma omp for
+    for (int i = 0; i < Hi; ++i) for (int j = 0; j < Hj; ++j) {
         e = std::fabs(at(global(i,j)) - dst[i][j]);
         if (eps < e ) {
             eps = e;

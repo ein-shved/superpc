@@ -12,24 +12,26 @@ class Step : public std::vector<Net<double> *> {
 public:
     typedef Net<double> net;
     typedef std::vector<net *>base_type;
-    typedef typename net::matrix matrix;
-    typedef typename matrix::line line;
-    typedef typename matrix::raw raw;
-    typedef typename matrix::column column;
-    typedef typename matrix::value_type value_type;
-    typedef typename matrix::reference reference;
-    typedef typename matrix::pointer pointer;
-    typedef typename matrix::const_reference const_reference;
-    typedef typename matrix::const_pointer const_pointer;
-    typedef typename matrix::position position;
+    typedef net::matrix matrix;
+    typedef matrix::line line;
+    typedef matrix::raw raw;
+    typedef matrix::column column;
+    typedef matrix::value_type value_type;
+    typedef matrix::reference reference;
+    typedef matrix::pointer pointer;
+    typedef matrix::const_reference const_reference;
+    typedef matrix::const_pointer const_pointer;
+    typedef matrix::position position;
 
 public:
-    template<typename ...Args>
-    Step(size_t len, Args ... args)
+    Step(size_t len,size_t index, size_t N, size_t M, size_t Hi, size_t Hj,
+            const_reference val = value_type())
         : base_type(len, NULL)
+        , m_step (0)
+        , m_swap (NULL)
     {
         for (size_t i = 0; i < len; ++i) {
-            base_type::at(i) = new net(args...);
+            base_type::at(i) = new net(index, N, M, Hi, Hj, val);
         }
     }
     virtual ~Step();
@@ -123,12 +125,12 @@ protected:
     virtual void v_next_swap_begin();
     virtual void v_next_swap_end();
 private:
-    unsigned m_step = 0;
+    unsigned m_step;
     std::vector<line> m_top;
     std::vector<line> m_bottom;
     std::vector<column> m_left;
     std::vector<column> m_right;
-    net *m_swap = NULL;
+    net *m_swap;
 
 };
 

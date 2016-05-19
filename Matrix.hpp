@@ -7,6 +7,7 @@
 #include <functional>
 #include <utility>
 #include <cstddef>
+#include <sys/types.h>
 
 #ifndef _MATRIX_HPP_
 #define _MATRIX_HPP_
@@ -31,14 +32,14 @@ public:
         , m_N(in_N)
         , m_M(in_M)
     {}
-    template<typename F, typename ...Args>
-    Matrix (size_t in_N, size_t in_M, const F &f, Args... args)
+    template<typename F>
+    Matrix (size_t in_N, size_t in_M, const F &f)
         : base_type(in_N,line(in_M))
         , m_N(in_N)
         , m_M(in_M)
     {
         for (size_t i = 0; i< m_N; ++i) for (size_t j = 0; j < m_M; ++j) {
-            (*this)[i][j] = f(i,j, args...);
+            (*this)[i][j] = f(i,j);
         }
     }
 
@@ -114,22 +115,18 @@ public:
         }
         return result;
     }
-    template<typename F, typename ...Args>
-    void foreach (const F &f, Args... args)
+    template<typename F>
+    void foreach (const F &f)
     {
-        for (line &l : (*this)) {
-            for (reference val : l) {
-                f(val, args...);
-            }
+        for (size_t i=0; i<N(); ++i) for (size_t j=0; j<M(); ++j) {
+                f(at(i,j));
         }
     }
-    template<typename F, typename ...Args>
-    void foreach (const F &f, Args... args) const
+    template<typename F>
+    void foreach (const F &f) const
     {
-        for (const line &l : (*this)) {
-            for (const_reference val : l) {
-                f(val, args...);
-            }
+        for (size_t i=0; i<N(); ++i) for (size_t j=0; j<M(); ++j) {
+                f(at(i,j));
         }
     }
 private:

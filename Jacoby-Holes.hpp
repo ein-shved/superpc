@@ -8,10 +8,13 @@
 #include <iostream>
 class Jacoby_Hole : public Jacoby {
 public:
-    template <typename ... Args>
     Jacoby_Hole (const Hole &h, const EdgeCondition &holeCondition,
-                 Args ... args)
-        : Jacoby(args...)
+                 const EdgeCondition &conditions,
+                 const MPI_Comm &comm, size_t overlap, size_t len, 
+                 size_t index, size_t N, size_t M,
+                 size_t Hi, size_t Hj, 
+                 const_reference val = value_type())
+        : Jacoby(conditions, comm, overlap, len, index, N, M, Hi, Hj, val)
         , m_hole(h.copy())
         , m_holeCondition(holeCondition)
     {}
@@ -34,8 +37,7 @@ private:
 
 class HoleCondition : public EdgeCondition {
 public:
-    template <typename F>
-    HoleCondition (const F &f, size_t N, size_t M = 0, double Lx = 1,
+    HoleCondition (SplitEdgeCondition::zero_f f, size_t N, size_t M = 0, double Lx = 1,
             double Ly = 0)
         : m_f(f)
         , Hx(Lx/(M == 0 ? N : M))
@@ -46,8 +48,7 @@ public:
         return m_f(j*Hx, i*Hy);
     }
 private:
-    std::function<double(double, double)> m_f = [](double x, double y)
-        -> double { return 0; };
+    SplitEdgeCondition::zero_f m_f;
     double Hx, Hy;
 };
 

@@ -1,20 +1,21 @@
 #include "Step.hpp"
 
 using namespace std;
-typedef typename Step::net net;
-typedef typename Step::line line;
-typedef typename Step::raw raw;
-typedef typename Step::column column;
-typedef typename Step::value_type value_type;
-typedef typename Step::reference reference;
-typedef typename Step::pointer pointer;
-typedef typename Step::const_reference const_reference;
-typedef typename Step::const_pointer const_pointer;
-typedef typename Step::position position;
+typedef Step::net net;
+typedef Step::line line;
+typedef Step::raw raw;
+typedef Step::column column;
+typedef Step::value_type value_type;
+typedef Step::reference reference;
+typedef Step::pointer pointer;
+typedef Step::const_reference const_reference;
+typedef Step::const_pointer const_pointer;
+typedef Step::position position;
 
 Step::~Step()
 {
-    for (auto n : (*this)) delete n;
+    base_type::iterator it;
+    for (it = begin(); it != end(); ++it) delete *it;
 }
 
 net &Step::at(size_t i)

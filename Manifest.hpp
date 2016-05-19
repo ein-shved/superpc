@@ -12,10 +12,14 @@ public:
 
 class Manifest : public MPI_Exchanger {
 public :
-    template <typename ... Args>
-    Manifest(const EdgeCondition &conditions, Args ... args)
-        : MPI_Exchanger(args ...)
+    Manifest(const EdgeCondition &conditions,
+             const MPI_Comm &comm, size_t overlap, size_t len, 
+             size_t index, size_t N, size_t M,
+             size_t Hi, size_t Hj, 
+             const_reference val = value_type())
+        : MPI_Exchanger(comm, overlap, len, index, N, M, Hi, Hj, val)
         , m_conditions(conditions)
+        , m_eps(0)
     {}
     virtual double method(const position &pos) = 0;
     double eps();
@@ -27,34 +31,37 @@ private:
     double resid (Step::net &dst);
 private:
     const EdgeCondition &m_conditions;
-    double m_eps = 0;
+    double m_eps;
 };
 
 class SplitEdgeCondition : public EdgeCondition {
 public:
+    typedef double (*zero_f)(double, double);
+    typedef double (*edge_f)(double);
+public:
     SplitEdgeCondition(size_t N, size_t M = 0, double Lx = 1, double Ly = 0)
-        : Hx(Lx/(M == 0 ? N : M))
+        : m_z(default_zero)
+        , m_t(default_edge)
+        , m_b(default_edge)
+        , m_l(default_edge)
+        , m_r(default_edge)
+        , Hx(Lx/(M == 0 ? N : M))
         , Hy((Ly == 0 ? Lx : Ly)/N)
         , m_N(N), m_M(M)
     {}
-    template <typename F>
-    void zero (const F &f) {
+    void zero (zero_f f) {
         m_z = f;
     }
-    template <typename F>
-    void top (const F &f) {
+    void top (edge_f f) {
         m_t = f;
     }
-    template <typename F>
-    void bottom (const F &f) {
+    void bottom (edge_f f) {
         m_b = f;
     }
-    template <typename F>
-    void left (const F &f) {
+    void left (edge_f f) {
         m_l = f;
     }
-    template <typename F>
-    void right (const F &f) {
+    void right (edge_f f) {
         m_r = f;
     }
     virtual double calc (size_t step, size_t i, size_t j) const
@@ -66,13 +73,16 @@ public:
         if (i == m_N-1) return m_b(j*Hx);
         return NAN;
     }
+public:
+    static double default_zero(double, double) {
+        return NAN;
+    }
+    static double default_edge(double) {
+        return NAN;
+    }
 private:
-    std::function<double(double, double)> m_z = [](double x, double y)
-        -> double { return 0; };
-    std::function<double(double)> m_t = [](double x) -> double { return NAN;};
-    std::function<double(double)> m_b = [](double x) -> double { return NAN;};
-    std::function<double(double)> m_l = [](double y) -> double { return NAN;};
-    std::function<double(double)> m_r = [](double y) -> double { return NAN;};
+    zero_f m_z;
+    edge_f m_t, m_b, m_l, m_r;
     double Hx, Hy;
     size_t m_N, m_M;
 };

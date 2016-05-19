@@ -6,23 +6,26 @@
 
 class MPI_Exchanger : public Exchanger {
 public:
-    typedef typename Exchanger::matrix matrix;
-    typedef typename Exchanger::line line;
-    typedef typename Exchanger::raw raw;
-    typedef typename Exchanger::column column;
-    typedef typename Exchanger::value_type value_type;
-    typedef typename Exchanger::reference reference;
-    typedef typename Exchanger::pointer pointer;
-    typedef typename Exchanger::const_reference const_reference;
-    typedef typename Exchanger::const_pointer const_pointer;
-    typedef typename Exchanger::position position;
-    typedef typename Exchanger::edge_t edge_t;
+    typedef Exchanger::matrix matrix;
+    typedef Exchanger::line line;
+    typedef Exchanger::raw raw;
+    typedef Exchanger::column column;
+    typedef Exchanger::value_type value_type;
+    typedef Exchanger::reference reference;
+    typedef Exchanger::pointer pointer;
+    typedef Exchanger::const_reference const_reference;
+    typedef Exchanger::const_pointer const_pointer;
+    typedef Exchanger::position position;
+    typedef Exchanger::edge_t edge_t;
 
 public:
-    template <typename ... Args>
-    MPI_Exchanger(const MPI_Comm &comm, Args ... args)
-        : Exchanger(args ...)
+    MPI_Exchanger(const MPI_Comm &comm, size_t overlap, size_t len, 
+                  size_t index, size_t N, size_t M,
+                  size_t Hi, size_t Hj, 
+                  const_reference val = value_type())
+        : Exchanger(overlap, len, index, N, M, Hi, Hj, val)
         , m_comm(comm)
+        , m_result (NULL)
     {}
     virtual ~MPI_Exchanger();
 
@@ -66,8 +69,7 @@ private:
 
 private:
     MPI_Comm m_comm;
-    matrix *m_result = NULL;
-
+    matrix *m_result;
 };
 
 

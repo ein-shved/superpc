@@ -10,7 +10,7 @@ MPI_Exchanger::~MPI_Exchanger()
 }
 int MPI_Exchanger::send (size_t i, const line &s, int dst, int tag)
 {
-    return MPI_Send(s.data(), s.size(), MPI_DOUBLE, dst, tag*100 + i, m_comm);
+    return MPI_Send((void *)s.data(), s.size(), MPI_DOUBLE, dst, tag*100 + i, m_comm);
 }
 int MPI_Exchanger::recv (size_t i, line &r, int dst, int tag)
 {
@@ -20,7 +20,7 @@ int MPI_Exchanger::recv (size_t i, line &r, int dst, int tag)
 int MPI_Exchanger::send_recv (size_t i, const line &s, int s_tag,
         line &r, int r_tag, int dst)
 {
-    return MPI_Sendrecv(s.data(), s.size(), MPI_DOUBLE, dst, s_tag*100 + i,
+    return MPI_Sendrecv((void *)s.data(), s.size(), MPI_DOUBLE, dst, s_tag*100 + i,
                 r.data(), r.size(), MPI_DOUBLE, dst, r_tag*100 + i,
                 m_comm, MPI_STATUS_IGNORE);
 }

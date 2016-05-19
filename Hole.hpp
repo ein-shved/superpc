@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <utility>
-#include <initializer_list>
 
 class Hole {
 public:
@@ -28,7 +27,10 @@ public:
         if (m_j1 > m_j2) std::swap(m_j1, m_j2);
     }
     RectangleHole (const RectangleHole &other)
-        : RectangleHole(other.m_i1, other.m_i2, other.m_j1, other.m_j2)
+        : m_i1(other.m_i1)
+        , m_i2(other.m_i2)
+        , m_j1(other.m_j1)
+        , m_j2(other.m_j2)
     {}
     virtual bool contains (size_t i, size_t j, bool &edge)
     {
@@ -48,42 +50,48 @@ private:
 
 class Holes : public Hole {
 public:
-    template <typename ... Args>
-    Holes (Args... args)
-    {
-        append(args...);
+    typedef std::vector<Hole *> vector;
+public:
+    Holes (const Holes *other = NULL) {
+        append(other);
     }
     ~Holes()
     {
-        for (auto h: m_holes) delete h;
+        for (vector::const_iterator it = m_holes.begin();
+            it != m_holes.begin(); ++it)
+        {
+            append(*it);
+        }
     }
     void append(){};
-    template <typename ... Args>
-    void append(const Hole &h, Args ... args)
+    void append(const Hole &h)
     {
         m_holes.push_back(h.copy());
-        append (args...);
     }
-    template <typename ... Args>
-    void append(const Hole *h, Args ... args)
+    void append(const Hole *h)
     {
-        append(*h, args...);
+        if (h == NULL) return;
+        append(*h);
     }
-    template <typename ... Args>
-    void append(const Holes &other, Args ... args)
+    void append(const Holes &other)
     {
-        for (auto h: other.m_holes) append(h);
-        append (args...);
+        for (vector::const_iterator it = other.m_holes.begin();
+            it != other.m_holes.begin(); ++it)
+        {
+            append(*it);
+        }
     }
-    template <typename ... Args>
-    void append(const Holes *h, Args ... args)
+    void append(const Holes *h)
     {
-        append (*h, args...);
+        if (h== NULL) return;
+        append (*h);
     }
     virtual bool contains (size_t i, size_t j, bool &edge)
     {
-        for (auto h: m_holes) {
-            if (h->contains(i,j, edge)) return true;
+        for (vector::const_iterator it = m_holes.begin();
+            it != m_holes.begin(); ++it)
+        {
+            if ((*it)->contains(i,j, edge)) return true;
         }
         return false;
     }
@@ -91,7 +99,7 @@ public:
         return new Holes (this);
     }
 private:
-    std::vector<Hole *> m_holes;
+    vector m_holes;
 };
 
 #endif /* Hole.hpp */

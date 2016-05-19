@@ -7,43 +7,37 @@
 #define _EXCHANGER_HPP_
 
 #include "Step.hpp"
-#include <array>
 
 class Exchanger : public Step {
 public:
-    typedef typename Step::matrix matrix;
-    typedef typename Step::line line;
-    typedef typename Step::raw raw;
-    typedef typename Step::column column;
-    typedef typename Step::value_type value_type;
-    typedef typename Step::reference reference;
-    typedef typename Step::pointer pointer;
-    typedef typename Step::const_reference const_reference;
-    typedef typename Step::const_pointer const_pointer;
-    typedef typename Step::position position;
+    typedef Step::matrix matrix;
+    typedef Step::line line;
+    typedef Step::raw raw;
+    typedef Step::column column;
+    typedef Step::value_type value_type;
+    typedef Step::reference reference;
+    typedef Step::pointer pointer;
+    typedef Step::const_reference const_reference;
+    typedef Step::const_pointer const_pointer;
+    typedef Step::position position;
     typedef std::vector<line> edge_t;
-    typedef std::array<matrix, 4> corner_t;
+    typedef std::vector<matrix> corner_t;
 
 public:
     enum CType {TL=0, TR=1, BR=2, BL=3};
 
 public:
 
-    template <typename ... Args>
     Exchanger(size_t overlap, size_t len, size_t index, size_t N, size_t M,
-              size_t Hi, size_t Hj, Args ... args)
-        : Step(len, index, N, M, Hi, Hj, args...)
+              size_t Hi, size_t Hj, const_reference val = value_type())
+        : Step(len, index, N, M, Hi, Hj, val)
     {
         for (size_t i=0; i<len; ++i) {
             m_bottom.push_back(new edge_t(overlap, line(Hj)));
             m_top.push_back(new edge_t(overlap, line(Hj)));
             m_left.push_back(new edge_t(overlap, column(Hi)));
             m_right.push_back(new edge_t(overlap, column(Hi)));
-            m_corner.push_back(new corner_t({
-                        matrix(overlap, overlap),
-                        matrix(overlap, overlap),
-                        matrix(overlap, overlap),
-                        matrix(overlap, overlap)}));
+            m_corner.push_back(new corner_t(4, matrix(overlap, overlap)));
         }
     }
     virtual ~Exchanger();
@@ -79,7 +73,7 @@ public:
 
 public:
     virtual void v_next();
-    const size_t W = 0;
+    const static size_t W;
 
 private:
     std::vector<edge_t *> m_top;

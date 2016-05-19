@@ -29,10 +29,10 @@ public:
     {
         p_init(index, N, M, Hi, Hj);
     };
-    template<typename F, typename ...Args>
+    template<typename F>
     Net (size_t index, size_t N, size_t M, size_t Hi, size_t Hj,
-            const F &f, Args... args)
-        : matrix(Hi, Hj, f, args...)
+            const F &f)
+        : matrix(Hi, Hj, f)
     {
         p_init(index, N, M, Hi, Hj);
     };
@@ -73,7 +73,7 @@ public:
 
     position matrix_pos(size_t i, size_t j) const
     {
-        return {i / Hi(), j / Hj()};
+        return position(i / Hi(), j / Hj());
     }
     position matrix_pos(position &pos) const
     {
@@ -137,7 +137,7 @@ public:
 
     position global (size_t i, size_t j) const
     {
-        return {m_I * Hi() + i, m_J * Hj() + j};
+        return position(m_I * Hi() + i, m_J * Hj() + j);
     }
     position global (const position &pos) const
     {
@@ -145,7 +145,7 @@ public:
     }
     position local (size_t i, size_t j) const
     {
-        return { i - m_I * Hi(), j - m_J * Hj()};
+        return position(i - m_I * Hi(), j - m_J * Hj());
     }
     position local (const position &pos) const
     {

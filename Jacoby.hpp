@@ -4,11 +4,14 @@
 
 class Jacoby : public Manifest {
 public:
-    template <typename ... Args>
-    Jacoby (Args ... args)
-        : Manifest(args ...)
-        , m_Hx(((double) 1)/M())
-        , m_Hy(((double) 1)/N())
+    Jacoby (const EdgeCondition &conditions,
+             const MPI_Comm &comm, size_t overlap, size_t len, 
+             size_t index, size_t N, size_t M,
+             size_t Hi, size_t Hj, 
+             const_reference val = value_type())
+        : Manifest(conditions, comm, overlap, len, index, N, M, Hi, Hj)
+        , m_Hx(1./this->M())
+        , m_Hy(1./this->N())
         , m_T(std::min(m_Hx*m_Hx/2, m_Hy*m_Hy/2))
 
     {}

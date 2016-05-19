@@ -1,10 +1,10 @@
-CXX			=	mpicxx
-CC          =   mpicc
-CFLAGS      =   -fopenmp -g -O2 -Wall -Werror -DJACOBY_SYNC -std=gnu++11
-LD          =   mpicc
-LDFLAGS     =   -fopenmp -lm
+CXX			=	mpixlcxx_r
+CC          =   mpixlc_r
+CFLAGS      =   -qsmp=omp -g -O2 -std=gnu++98
+LD          =   mpixlcxx_r
+LDFLAGS     =   -qsmp=omp -lm
 
-all: tests main
+all: main
 
 tests: matrix-test step-test exchanger-test mpi-test jacoby-test
 
