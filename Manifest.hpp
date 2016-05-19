@@ -1,5 +1,6 @@
 #include "MPI.hpp"
 #include <stdexcept>
+#include <cmath>
 
 class EdgeCondition {
 public:
@@ -22,6 +23,8 @@ public :
     virtual void on_stop(unsigned step);
 private:
     virtual double calc(const position &pos);
+    virtual void v_next_iterate(Step::net &dst);
+    double resid (Step::net &dst);
 private:
     const EdgeCondition &m_conditions;
     double m_eps = 0;
@@ -56,20 +59,20 @@ public:
     }
     virtual double calc (size_t step, size_t i, size_t j) const
     {
-        if (step == 0) return m_z(j*Hx, i * Hy);
+        if (step == 0) return m_z(j*Hx, i*Hy);
         if (j == 0) return m_l(i*Hy);
         if (j == m_M-1) return m_r(i*Hy);
         if (i == 0) return m_t(j*Hx);
         if (i == m_N-1) return m_b(j*Hx);
-        throw (std::invalid_argument(""));
+        return NAN;
     }
 private:
     std::function<double(double, double)> m_z = [](double x, double y)
         -> double { return 0; };
-    std::function<double(double)> m_t = [](double x) -> double { return 0;};
-    std::function<double(double)> m_b = [](double x) -> double { return 0;};
-    std::function<double(double)> m_l = [](double y) -> double { return 0;};
-    std::function<double(double)> m_r = [](double y) -> double { return 0;};
+    std::function<double(double)> m_t = [](double x) -> double { return NAN;};
+    std::function<double(double)> m_b = [](double x) -> double { return NAN;};
+    std::function<double(double)> m_l = [](double y) -> double { return NAN;};
+    std::function<double(double)> m_r = [](double y) -> double { return NAN;};
     double Hx, Hy;
     size_t m_N, m_M;
 };

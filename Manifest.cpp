@@ -6,20 +6,16 @@ using namespace std;
 
 double Manifest::calc(const position &pos)
 {
-    double eps, res;
-    try {
-        if (step() == 0 || pos.first == 0 || pos.second == 0 ||
-                pos.first >= (ssize_t)N() - 1 || pos.second >= (ssize_t)M() - 1)
-        {
-            return m_conditions(step(), pos.first, pos.second);
+    double res;
+    if (step() == 0 || pos.first == 0 || pos.second == 0 ||
+            pos.first >= (ssize_t)N() - 1 || pos.second >= (ssize_t)M() - 1)
+    {
+        res = m_conditions(step(), pos.first, pos.second);
+        if (res != NAN) {
+            return res;
         }
-    } catch (const std::invalid_argument &) {}
-    res = method(pos);
-    eps = std::fabs(at(pos) - res);
-    if (m_eps < eps ) {
-        m_eps = eps;
     }
-    return res;
+    return method(pos);
 }
 void Manifest::on_start(unsigned step)
 {
@@ -39,4 +35,40 @@ void Manifest::on_stop(unsigned step)
 double Manifest::eps()
 {
     return m_eps;
+}
+void Manifest::v_next_iterate(Step::net &dst)
+{
+    size_t Hi = at().Hi();
+    size_t Hj = at().Hj();
+#pragma omp parallel
+    {
+#pragma omp for collapse (2)
+        for (size_t i = 0; i < Hi; ++i) for (size_t j = 0; j < Hj; ++j) {
+            dst[i][j] = calc(global(i,j));
+        }
+//#pragma omp barrier
+        double eps = resid(dst);
+        if (eps > m_eps) {
+#pragma omp critical
+            {
+                if (eps > m_eps) {
+                    m_eps = eps;
+                }
+            }
+        }
+    }
+}
+double Manifest::resid (Step::net &dst)
+{
+    size_t Hi = at().Hi();
+    size_t Hj = at().Hj();
+    double eps = 0, e;
+#pragma omp for collapse (2)
+    for (size_t i = 0; i < Hi; ++i) for (size_t j = 0; j < Hj; ++j) {
+        e = std::fabs(at(global(i,j)) - dst[i][j]);
+        if (eps < e ) {
+            eps = e;
+        }
+    }
+    return eps;
 }

@@ -4,7 +4,7 @@ CFLAGS      =   -fopenmp -g -O2 -Wall -Werror -DJACOBY_SYNC -std=gnu++11
 LD          =   mpicc
 LDFLAGS     =   -fopenmp -lm
 
-all: tests
+all: tests main
 
 tests: matrix-test step-test exchanger-test mpi-test jacoby-test
 
@@ -46,10 +46,16 @@ mpi-test: mpi-test.o Exchanger.o Step.o MPI.o
 Manifest.o: Manifest.cpp Manifest.hpp MPI.hpp Exchanger.hpp Step.hpp Matrix.hpp Net.hpp
 	$(CXX) $(CFLAGS) -c -o $@ $<
 
-Jacoby-test.o: Jacoby-test.cpp Jacoby.hpp Manifest.hpp MPI.hpp Exchanger.hpp Step.hpp Matrix.hpp Net.hpp
+Jacoby-test.o: Jacoby-test.cpp Jacoby-Holes.hpp Hole.hpp Jacoby.hpp Manifest.hpp MPI.hpp Exchanger.hpp Step.hpp Matrix.hpp Net.hpp
 	$(CXX) $(CFLAGS) -c -o $@ $<
 
 jacoby-test: Jacoby-test.o Manifest.o Exchanger.o Step.o MPI.o
+	$(CXX) $(LDFLAGS) -o $@ $^
+
+main.o: main.cpp Jacoby-Holes.hpp Hole.hpp Jacoby.hpp Manifest.hpp MPI.hpp Exchanger.hpp Step.hpp Matrix.hpp Net.hpp
+	$(CXX) $(CFLAGS) -c -o $@ $<
+
+main: main.o Manifest.o Exchanger.o Step.o MPI.o
 	$(CXX) $(LDFLAGS) -o $@ $^
 
 clean:
