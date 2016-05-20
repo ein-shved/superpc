@@ -79,6 +79,8 @@ int run(int rank, int N, int M, int Hi, int Hj, double eps,
     auto right = [](double y) -> double { return 1-cos(2*PI*y); };
     auto top = [](double x) -> double { return 0; };
     auto bottom = [](double x) -> double { return sin(2*PI*x); };
+    auto f = [](double x, double y, double t) -> double {return 0;};
+
     SplitEdgeCondition edge (N, M);
     Holes holes (
             RectangleHole(N/4, M/8, 3*N/8, M/4),
@@ -96,7 +98,7 @@ int run(int rank, int N, int M, int Hi, int Hj, double eps,
     edge.top(top);
     edge.bottom(bottom);
 
-    Jacoby_Hole jkb(holes, hole_cond, edge, comm, 1, 2, rank, N, M, Hi, Hj);
+    Jacoby_Hole jkb(holes, hole_cond, f, edge, comm, 1, 2, rank, N, M, Hi, Hj);
     double time = MPI_Wtime();
     jkb.next(); // Fill up borders;
     do {
@@ -137,6 +139,7 @@ int draw (Matrix<double> *result, double time, const char *file)
     for (size_t i = 0; i < result->N(); ++i) {
         for (size_t j = 0; j < result->M(); ++j) {
             double v = (*result)[i][j];
+            v = (v - min)/(max - min);
             f << R(v) << " " << G(v) << " " << B(v) << endl;
         }
     }
