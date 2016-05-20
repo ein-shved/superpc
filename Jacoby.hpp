@@ -17,7 +17,7 @@ public:
             at(pos.first - 1, pos.second);
         double add_j = at(pos.first, pos.second + 1) - 2 * at(pos) +
             at(pos.first, pos.second - 1);
-        double result =  at(pos) + m_T*(add_i/(m_Hy(m_Hy) +
+        double result =  at(pos) + m_T*(add_i/(m_Hy*m_Hy) +
                     add_j/(m_Hx*m_Hx));
         return result;
     }
