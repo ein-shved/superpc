@@ -66,9 +66,7 @@ public:
     }
     virtual double calc (size_t step, size_t i, size_t j) const
     {
-        if (step == 1) {
-            return m_z(j*Hx, i*Hy);
-        }
+        if (step == 1) return m_z(j*Hx, i*Hy);
         if (j == 0) return m_l(i*Hy);
         if (j == m_M-1) return m_r(i*Hy);
         if (i == 0) return m_t(j*Hx);

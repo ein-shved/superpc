@@ -7,7 +7,7 @@ using namespace std;
 double Manifest::calc(const position &pos)
 {
     double res;
-    if (step() == 0 || pos.first == 0 || pos.second == 0 ||
+    if (step() == 1 || pos.first == 0 || pos.second == 0 ||
             pos.first >= (ssize_t)N() - 1 || pos.second >= (ssize_t)M() - 1)
     {
         res = m_conditions(step(), pos.first, pos.second);

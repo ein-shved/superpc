@@ -8,13 +8,15 @@
 #include <iostream>
 class Jacoby_Hole : public Jacoby {
 public:
+    template <typename F>
     Jacoby_Hole (const Hole &h, const EdgeCondition &holeCondition,
+                 const F &f,
                  const EdgeCondition &conditions,
-                 const MPI_Comm &comm, size_t overlap, size_t len, 
+                 const MPI_Comm &comm, size_t overlap, size_t len,
                  size_t index, size_t N, size_t M,
-                 size_t Hi, size_t Hj, 
+                 size_t Hi, size_t Hj,
                  const_reference val = value_type())
-        : Jacoby(conditions, comm, overlap, len, index, N, M, Hi, Hj, val)
+        : Jacoby(f, conditions, comm, overlap, len, index, N, M, Hi, Hj, val)
         , m_hole(h.copy())
         , m_holeCondition(holeCondition)
     {}

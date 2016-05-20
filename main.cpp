@@ -23,7 +23,7 @@ void print(const Matrix<T> &m)
         cout << endl;
     }
 }
-int draw (Matrix<double> *result, const char *file);
+int draw (Matrix<double> *result, double time, const char *file);
 int run(int rank, int N, int M, int Hi, int Hj, double eps,
         const char *file);
 int main(int argc, char *argv[])
@@ -88,6 +88,10 @@ static double bottom(double x)
 {
      return sin(2*PI*x);
 }
+static double f(double x, double y, double t)
+{
+    return 0;
+}
 int run(int rank, int N, int M, int Hi, int Hj, double eps,
         const char *file)
 {
@@ -109,19 +113,21 @@ int run(int rank, int N, int M, int Hi, int Hj, double eps,
     holes.append(RectangleHole(3*N/8 - N/16, M/2 - M/16, N/2 - N/16,
                 5*M/8 - M/16));
 
-    Jacoby_Hole jkb(holes, hole_cond, edge, comm, 1, 2, rank, N, M, Hi, Hj);
+    Jacoby_Hole jkb(holes, hole_cond, f, edge, comm, 1, 2, rank, N, M, Hi, Hj);
+    double time = MPI_Wtime();
     jkb.next(); // Fill up borders;
     do {
         jkb.next();
     } while(jkb.eps() > eps);
+    time = MPI_Wtime() - time;
     Matrix<double> *result = jkb.sync_results();
     if (result == NULL) {
         return 0;
     }
 
-    return draw(result, file);
+    return draw(result, time, file);
 }
-int draw (Matrix<double> *result, const char *file)
+int draw (Matrix<double> *result, double time, const char *file)
 {
     double summ = 0;
     double max = NAN, min = NAN;
@@ -134,7 +140,8 @@ int draw (Matrix<double> *result, const char *file)
             if (min == NAN || min > v) min = v;
         }
     }
-    cout << "Summ: " << summ << endl;
+    cout.precision(4);
+    cout << "Time: " << time << "; Summ: " << summ << endl;
 
     if(file == NULL) return 0;
 
@@ -147,6 +154,7 @@ int draw (Matrix<double> *result, const char *file)
     for (size_t i = 0; i < result->N(); ++i) {
         for (size_t j = 0; j < result->M(); ++j) {
             double v = (*result)[i][j];
+            v = (v - min)/(max - min);
             f << R(v) << " " << G(v) << " " << B(v) << endl;
         }
     }
