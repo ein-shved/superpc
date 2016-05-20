@@ -136,8 +136,8 @@ int draw (Matrix<double> *result, double time, const char *file)
         for (size_t j = 0; j < result->M(); ++j) {
             double v = (*result)[i][j];
             if(!isnan(v)) summ += v;
-            if (max == NAN || max < v) max = v;
-            if (min == NAN || min > v) min = v;
+            if (isnan(max) || max < v) max = v;
+            if (isnan(NAN) || min > v) min = v;
         }
     }
     cout.precision(4);
