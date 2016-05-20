@@ -28,7 +28,7 @@ public:
         if (m_j1 > m_j2) std::swap(m_j1, m_j2);
     }
     RectangleHole (const RectangleHole &other)
-        : RectangleHole(other.m_i1, other.m_i2, other.m_j1, other.m_j2)
+        : RectangleHole(other.m_i1, other.m_j1, other.m_i2, other.m_j2)
     {}
     virtual bool contains (size_t i, size_t j, bool &edge)
     {
@@ -82,10 +82,18 @@ public:
     }
     virtual bool contains (size_t i, size_t j, bool &edge)
     {
+        bool result = false, e = false, r = false;
         for (auto h: m_holes) {
-            if (h->contains(i,j, edge)) return true;
+            r = h->contains(i,j, e);
+            result |= r;
+            if (r & !e) {
+                edge = false;
+                return result;
+            } else if (r & e) {
+                edge = true;
+            }
         }
-        return false;
+        return result;
     }
     virtual Holes *copy() const {
         return new Holes (this);
