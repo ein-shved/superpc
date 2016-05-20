@@ -18,7 +18,6 @@ public:
     virtual Hole *copy () const = 0;
 };
 
-#include <iostream>
 class RectangleHole : public Hole {
 public:
     RectangleHole (size_t i1 = 0, size_t j1 = 0, size_t i2 = 0, size_t j2 = 0)
@@ -86,10 +85,10 @@ public:
         for (auto h: m_holes) {
             r = h->contains(i,j, e);
             result |= r;
-            if (r & !e) {
+            if (r && !e) {
                 edge = false;
                 return result;
-            } else if (r & e) {
+            } else if (r && e) {
                 edge = true;
             }
         }
