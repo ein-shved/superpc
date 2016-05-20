@@ -65,7 +65,8 @@ double Manifest::resid (Step::net &dst)
     double eps = 0, e;
 #pragma omp for
     for (int i = 0; i < Hi; ++i) for (int j = 0; j < Hj; ++j) {
-        e = std::fabs(at(global(i,j)) - dst[i][j]);
+        double r1 = at(global(i,j)), r2 = dst[i][j];
+        e = sqrt(std::fabs(r1*r1 - r2*r2));
         if (eps < e ) {
             eps = e;
         }

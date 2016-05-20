@@ -17,7 +17,6 @@ public:
     virtual Hole *copy () const = 0;
 };
 
-#include <iostream>
 class RectangleHole : public Hole {
 public:
     RectangleHole (size_t i1 = 0, size_t j1 = 0, size_t i2 = 0, size_t j2 = 0)
@@ -28,8 +27,8 @@ public:
     }
     RectangleHole (const RectangleHole &other)
         : m_i1(other.m_i1)
-        , m_i2(other.m_i2)
-        , m_j1(other.m_j1)
+        , m_i2(other.m_j1)
+        , m_j1(other.m_i2)
         , m_j2(other.m_j2)
     {}
     virtual bool contains (size_t i, size_t j, bool &edge)
@@ -76,7 +75,7 @@ public:
     void append(const Holes &other)
     {
         for (vector::const_iterator it = other.m_holes.begin();
-            it != other.m_holes.begin(); ++it)
+            it != other.m_holes.end(); ++it)
         {
             append(*it);
         }
@@ -88,12 +87,20 @@ public:
     }
     virtual bool contains (size_t i, size_t j, bool &edge)
     {
+        bool result = false, e = false, r = false;
         for (vector::const_iterator it = m_holes.begin();
-            it != m_holes.begin(); ++it)
+            it != m_holes.end(); ++it)
         {
-            if ((*it)->contains(i,j, edge)) return true;
+            r = (*it)->contains(i,j, e);
+            result |= r;
+            if (r && !e) {
+                edge = false;
+                return result;
+            } else if (r && e) {
+                edge = true;
+            }
         }
-        return false;
+        return result;
     }
     virtual Holes *copy() const {
         return new Holes (this);

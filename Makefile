@@ -52,7 +52,7 @@ Jacoby-test.o: Jacoby-test.cpp Jacoby-Holes.hpp Hole.hpp Jacoby.hpp Manifest.hpp
 jacoby-test: Jacoby-test.o Manifest.o Exchanger.o Step.o MPI.o
 	$(CXX) $(LDFLAGS) -o $@ $^
 
-main.o: main.cpp Jacoby-Holes.hpp Hole.hpp Jacoby.hpp Manifest.hpp MPI.hpp Exchanger.hpp Step.hpp Matrix.hpp Net.hpp
+main.o: main.cpp Jacoby-Holes.hpp Hole.hpp Jacoby.hpp Manifest.hpp MPI.hpp Exchanger.hpp Step.hpp Matrix.hpp Net.hpp Heat.hpp
 	$(CXX) $(CFLAGS) -c -o $@ $<
 
 main: main.o Manifest.o Exchanger.o Step.o MPI.o

@@ -13,9 +13,9 @@ public:
 class Manifest : public MPI_Exchanger {
 public :
     Manifest(const EdgeCondition &conditions,
-             const MPI_Comm &comm, size_t overlap, size_t len, 
+             const MPI_Comm &comm, size_t overlap, size_t len,
              size_t index, size_t N, size_t M,
-             size_t Hi, size_t Hj, 
+             size_t Hi, size_t Hj,
              const_reference val = value_type())
         : MPI_Exchanger(comm, overlap, len, index, N, M, Hi, Hj, val)
         , m_conditions(conditions)
@@ -66,7 +66,9 @@ public:
     }
     virtual double calc (size_t step, size_t i, size_t j) const
     {
-        if (step == 0) return m_z(j*Hx, i*Hy);
+        if (step == 1) {
+            return m_z(j*Hx, i*Hy);
+        }
         if (j == 0) return m_l(i*Hy);
         if (j == m_M-1) return m_r(i*Hy);
         if (i == 0) return m_t(j*Hx);
