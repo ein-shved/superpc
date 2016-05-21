@@ -23,8 +23,8 @@ void print(const Matrix<T> &m)
         cout << endl;
     }
 }
-int draw (Matrix<double> *result, double time, const char *file);
-int run(int rank, int N, int M, int Hi, int Hj, double eps,
+int draw (Matrix<double> *result, double time, double T, const char *file);
+int run(int rank, int N, int M, int Hi, int Hj, double eps, double T,
         const char *file);
 int main(int argc, char *argv[])
 {
@@ -34,10 +34,25 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(comm, &rank);
     MPI_Comm_size(comm, &size);
     int N = 0, M;
-    do {
-        ++N;
-        M=size/N;
-    } while (N < M);
+
+    switch (size) {
+    case 32:
+        N=4;
+        M=8;
+    case 128:
+        N=8;
+        M=16;
+        break;
+    case 512:
+        N=16;
+        M=32;
+    default:
+        do {
+            ++N;
+            M=size/N;
+        } while (N < M);
+        break;
+    }
     if (rank >= N*M) {
         MPI_Finalize();
         return 0;
@@ -47,7 +62,8 @@ int main(int argc, char *argv[])
     double eps = 0.1;
     int cell_size = 512;
     const char *file = NULL;
-    while ( (c = getopt(argc, argv, "n:e:o:")) != -1) switch (c){
+    double T = 0;
+    while ( (c = getopt(argc, argv, "n:e:o:t:")) != -1) switch (c){
     case 'n':
         cell_size = atoi(optarg);
         if (cell_size <=0 ) {
@@ -58,27 +74,30 @@ int main(int argc, char *argv[])
     case 'e':
         eps = atof(optarg);
         break;
+    case 't':
+        T = atof(optarg);
+        break;
     case 'o':
         file = optarg;
         break;
     }
 
-    run(rank, N*cell_size, M*cell_size, cell_size, cell_size, eps, file);
+    run(rank, N*cell_size, M*cell_size, cell_size, cell_size, eps, T, file);
 
     MPI_Finalize();
     return 0;
 }
-int run(int rank, int N, int M, int Hi, int Hj, double eps,
+int run(int rank, int N, int M, int Hi, int Hj, double eps, double T,
         const char *file)
 {
     auto zero =
         [](double x, double y) -> double { return x+y - 1; };
     auto hole_edge =
-        [](double x, double y) -> double { return 1-x+y; };
-    auto left = [](double y) -> double { return sin(2*PI*y); };
+        [](double x, double y) -> double { return 2; };
+    auto left = [](double y) -> double { return 2*sin(2*PI*y); };
     auto right = [](double y) -> double { return 1-cos(2*PI*y); };
     auto top = [](double x) -> double { return 0; };
-    auto bottom = [](double x) -> double { return sin(2*PI*x); };
+    auto bottom = [](double x) -> double { return 2*sin(2*PI*x); };
     auto f = [](double x, double y, double t) -> double {return 0;};
 
     SplitEdgeCondition edge (N, M);
@@ -103,16 +122,20 @@ int run(int rank, int N, int M, int Hi, int Hj, double eps,
     jkb.next(); // Fill up borders;
     do {
         jkb.next();
-    } while(jkb.eps() > eps);
+        if (rank == 0 && jkb.step() % 100 == 0) {
+            cout << "Step: " << jkb.step() << "; Eps: " << jkb.eps() <<
+                "; T: " << jkb.time() << endl;
+        }
+    } while((jkb.eps() > eps) && (T <= 0 || jkb.time() < T));
     time = MPI_Wtime() - time;
     Matrix<double> *result = jkb.sync_results();
     if (result == NULL) {
         return 0;
     }
 
-    return draw(result, time, file);
+    return draw(result, time, jkb.time(), file);
 }
-int draw (Matrix<double> *result, double time, const char *file)
+int draw (Matrix<double> *result, double time, double T, const char *file)
 {
     double summ = 0;
     double max = NAN, min = NAN;
@@ -126,7 +149,7 @@ int draw (Matrix<double> *result, double time, const char *file)
         }
     }
     cout.precision(4);
-    cout << "Time: " << time << "; Summ: " << summ << endl;
+    cout << "Time: " << time << "; Summ: " << summ << "; T: " << T << endl;
 
     if(file == NULL) return 0;
 
