@@ -36,6 +36,10 @@ int main(int argc, char *argv[])
     int N = 0, M;
 
     switch (size) {
+    case 8:
+        N=2;
+        M=4;
+        break;
     case 32:
         N=4;
         M=8;
@@ -60,13 +64,13 @@ int main(int argc, char *argv[])
 
     int c;
     double eps = 0.1;
-    int cell_size = 512;
+    int len = 512;
     const char *file = NULL;
     double T = 0;
     while ( (c = getopt(argc, argv, "n:e:o:t:")) != -1) switch (c){
     case 'n':
-        cell_size = atoi(optarg);
-        if (cell_size <=0 ) {
+        len = atoi(optarg);
+        if (len <=0 ) {
             MPI_Finalize();
             return 1;
         }
@@ -82,7 +86,7 @@ int main(int argc, char *argv[])
         break;
     }
 
-    run(rank, N*cell_size, M*cell_size, cell_size, cell_size, eps, T, file);
+    run(rank, len, len, len/N, len/M, eps, T, file);
 
     MPI_Finalize();
     return 0;

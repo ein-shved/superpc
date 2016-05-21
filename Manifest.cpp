@@ -29,8 +29,8 @@ void Manifest::on_stop(unsigned step)
 {
     double eps = m_eps;
 
-    MPI_Allreduce(&m_eps, &eps, 1, MPI_DOUBLE, MPI_MAX, comm());
-    m_eps = eps;
+    MPI_Allreduce(&m_eps, &eps, 1, MPI_DOUBLE, MPI_SUM, comm());
+    m_eps = sqrt(eps);
 }
 double Manifest::eps()
 {
@@ -62,14 +62,12 @@ double Manifest::resid (Step::net &dst)
 {
     size_t Hi = at().Hi();
     size_t Hj = at().Hj();
-    double eps = 0, e;
+    double eps = 0;
 #pragma omp for collapse (2)
     for (size_t i = 0; i < Hi; ++i) for (size_t j = 0; j < Hj; ++j) {
         double r1 = at(global(i,j)), r2 = dst[i][j];
-        e = sqrt(std::fabs(r1*r1 - r2*r2));
-        if (eps < e ) {
-            eps = e;
-        }
+        if (isnan(r2)) continue;
+        eps += (r1 - r2) * (r1 - r2);
     }
     return eps;
 }
