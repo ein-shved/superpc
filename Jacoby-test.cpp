@@ -44,7 +44,9 @@ void jacoby(int &argc, char **&argv)
     auto right = [](double y) -> double { return 1-cos(2*PI*y); };
     auto top = [](double x) -> double { return 0; };
     auto bottom = [](double x) -> double { return sin(2*PI*x); };
-    auto f = [](double x, double y, double t) -> double {return 0;};
+    auto f = [](double x, double y, double t) -> double {
+        return sin(PI*x) * sin(PI*y) * sin(2*PI*t);
+    };
 
     SplitEdgeCondition edge (N, M);
     Holes holes (RectangleHole(N/2, M/4, N/2 + N/3, (3*M)/4));

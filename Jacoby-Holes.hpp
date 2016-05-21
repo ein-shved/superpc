@@ -9,8 +9,7 @@
 class Jacoby_Hole : public Jacoby {
 public:
     template <typename F>
-    Jacoby_Hole (const Hole &h, const EdgeCondition &holeCondition,
-                 const F &f,
+    Jacoby_Hole (const Hole &h, const EdgeCondition &holeCondition, F f,
                  const EdgeCondition &conditions,
                  const MPI_Comm &comm, size_t overlap, size_t len,
                  size_t index, size_t N, size_t M,
