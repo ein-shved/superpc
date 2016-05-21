@@ -51,6 +51,7 @@ int main(int argc, char *argv[])
     case 512:
         N=16;
         M=32;
+        break;
     default:
         do {
             ++N;
