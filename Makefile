@@ -4,7 +4,7 @@ CFLAGS      =   -fopenmp -g -O2 -Wall -Werror -DJACOBY_SYNC -std=gnu++11
 LD          =   mpicc
 LDFLAGS     =   -fopenmp -lm
 
-all: tests main
+all: tests main heat
 
 tests: matrix-test step-test exchanger-test mpi-test jacoby-test
 
@@ -56,6 +56,12 @@ main.o: main.cpp Jacoby-Holes.hpp Hole.hpp Jacoby.hpp Manifest.hpp MPI.hpp Excha
 	$(CXX) $(CFLAGS) -c -o $@ $<
 
 main: main.o Manifest.o Exchanger.o Step.o MPI.o
+	$(CXX) $(LDFLAGS) -o $@ $^
+
+heat.o: Heat.cpp Heat.hpp
+	$(CXX) $(CFLAGS) -c -o $@ $<
+
+heat: Heat.o
 	$(CXX) $(LDFLAGS) -o $@ $^
 
 clean:
