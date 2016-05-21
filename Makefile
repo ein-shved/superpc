@@ -58,5 +58,11 @@ main.o: main.cpp Jacoby-Holes.hpp Hole.hpp Jacoby.hpp Manifest.hpp MPI.hpp Excha
 main: main.o Manifest.o Exchanger.o Step.o MPI.o
 	$(CXX) $(LDFLAGS) -o $@ $^
 
+heat.o: Heat.cpp Heat.hpp
+	$(CXX) $(CFLAGS) -c -o $@ $<
+
+heat: Heat.o
+	$(CXX) $(LDFLAGS) -o $@ $^
+
 clean:
 	rm -rf matrix-test *.o

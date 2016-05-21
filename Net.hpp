@@ -96,7 +96,7 @@ public:
     {
         if (i >= m_Nc) i = m_Nc - 1;
         if (j >= m_Mc) j = m_Mc - 1;
-        return m_Nc * i + j;
+        return m_Mc * i + j;
     }
     position pos_of(size_t index) const
     {

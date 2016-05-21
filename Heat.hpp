@@ -1,4 +1,5 @@
 #include <cmath>
+#include <string>
 
 #ifndef _HEAT_HPP_
 #define _HEAT_HPP_
