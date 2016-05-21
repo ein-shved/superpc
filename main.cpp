@@ -43,6 +43,7 @@ int main(int argc, char *argv[])
     case 32:
         N=4;
         M=8;
+        break;
     case 128:
         N=8;
         M=16;
