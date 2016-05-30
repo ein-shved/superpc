@@ -3,8 +3,9 @@ CC          =   mpicc
 CFLAGS      =   -fopenmp -g -O2 -Wall -Werror -DJACOBY_SYNC -std=gnu++11
 LD          =   mpicc
 LDFLAGS     =   -fopenmp -lm
+METIS		= 	-lmetis
 
-all: tests main heat
+all: decompositor
 
 tests: matrix-test step-test exchanger-test mpi-test jacoby-test
 
@@ -63,6 +64,12 @@ heat.o: Heat.cpp Heat.hpp
 
 heat: Heat.o
 	$(CXX) $(LDFLAGS) -o $@ $^
+
+decompositor.o: decompositor.cpp Decompositor.hpp
+	$(CXX) $(CFLAGS) -c -o $@ $<
+
+decompositor: decompositor.o
+	$(CXX) $(LDFLAGS) $(METIS) -o $@ $^
 
 clean:
 	rm -rf matrix-test *.o
