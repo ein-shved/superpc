@@ -1,12 +1,13 @@
 #include <unistd.h>
 #include "Decompositor.hpp"
+#include "Params.hpp"
 
 int main (int argc, char *argv[])
 {
     Decompositor d;
     char c;
 
-    while ( (c = getopt(argc, argv, "n:m:p:f:o:")) != -1) switch (c){
+    while ( (c = getopt(argc, argv, "n:m:p:f:o:P:")) != -1) switch (c){
     case 'n':
         d.N(atoi(optarg));
         break;
@@ -20,6 +21,10 @@ int main (int argc, char *argv[])
     case 'p':
         d.proc(atoi(optarg));
         break;
+    case 'P':
+        d.hole(Params::get(optarg)->hole());
+        break;
+
     }
 
     return d.run();
