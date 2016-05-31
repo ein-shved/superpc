@@ -51,12 +51,13 @@ public:
     int run() const
     {
         idx_t nvtxs = m_N * m_M;
-        idx_t ncon = nvtxs * 2 - m_N - m_M;
-        idx_t xadj[nvtxs+1];
-        idx_t adjncy[2*ncon];
+        idx_t ncon = 1;
+        idx_t nedjs = nvtxs * 2 - m_N - m_M;
+        idx_t *xadj = new idx_t [nvtxs+1];
+        idx_t *adjncy = new idx_t [2*nedjs];
         idx_t nparts = m_proc;
         idx_t o_objval;
-        idx_t o_part[nvtxs];
+        idx_t *o_part = new idx_t [nvtxs];
 
         xadj[0] = 0;
         for (size_t i=0, j = 0; i< (size_t)nvtxs; ++i) {
@@ -89,14 +90,14 @@ public:
         }
         std::cout << "]" <<std::endl;
         std::cout << "adjncy[";
-        for (idx_t i = 0; i < 2*ncon; ++i) {
+        for (idx_t i = 0; i < 2*nedjs; ++i) {
             std::cout << adjncy[i] << ",";
         }
         std::cout << "]" << std::endl;
 #endif
 
-        std::cout << "Running decompositor with nvtxs=" << nvtxs << " ncon=" <<
-            ncon << " nparts=" << nparts << std::endl;
+        std::cout << "Running decompositor with nvtxs=" << nvtxs << " nedjs=" <<
+            nedjs << " nparts=" << nparts << std::endl;
         int result = METIS_PartGraphKway(&nvtxs, &ncon, xadj, adjncy, NULL,
                 NULL, NULL, &nparts, NULL, NULL, NULL, &o_objval, o_part);
         std::cout << "Decomposition done with result='" << str_result(result)
@@ -121,6 +122,9 @@ public:
         }
         global.close();
 
+        delete [] xadj;
+        delete [] adjncy;
+        delete [] o_part;
         return result;
     }
     static const std::string &str_result(int result)
