@@ -22,7 +22,7 @@ int main (int argc, char *argv[])
         d.proc(atoi(optarg));
         break;
     case 'P':
-        d.hole(Params::get(optarg)->hole());
+        d.hole(HoleParams::get(optarg)->hole());
         break;
 
     }

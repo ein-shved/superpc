@@ -74,5 +74,8 @@ decompositor.o: decompositor.cpp Decompositor.hpp
 decompositor: decompositor.o Params.o
 	$(CXX) $(LDFLAGS) $(METIS) -o $@ $^
 
+Vertex.o : Vertex.cpp Vertex.hpp
+	$(CXX) $(CFLAGS) -c -o $@ $<
+
 clean:
 	rm -rf matrix-test *.o

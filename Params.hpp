@@ -5,14 +5,35 @@
 #include "Manifest.hpp"
 #include <string>
 
-class Params {
+class HoleParams {
 public:
     virtual const Hole *hole() const = 0;
-    virtual const EdgeCondition *edge() const = 0;
 
-    static const Params *get(const std::string &name);
+    static const HoleParams *get(const std::string &name);
 
 };
 
+class Functor {
+public:
+typedef double (F)(double, double, double);
+public:
+    Functor(const F &f)
+        : m_f(f)
+    {}
+    Functor(const Functor &f)
+        : m_f(f.m_f)
+    {}
+    virtual double calc(double x, double y, double t) const
+    {
+        return m_f(x,y,t);
+    }
+    double operator () (double x, double y, double t) const
+    {
+        return calc(x,y,t);
+    }
+    static const Functor &get(const std::string &name);
+private:
+    const F &m_f;
+};
 
 #endif /* Params.hpp */
