@@ -4,7 +4,7 @@ CFLAGS      =   -qsmp=omp -g -O2 -std=gnu++98
 LD          =   mpixlcxx_r
 LDFLAGS     =   -qsmp=omp -lm
 
-all: main
+all: calculation
 
 tests: matrix-test step-test exchanger-test mpi-test jacoby-test
 
@@ -62,6 +62,30 @@ heat.o: Heat.cpp Heat.hpp
 	$(CXX) $(CFLAGS) -c -o $@ $<
 
 heat: Heat.o
+	$(CXX) $(LDFLAGS) -o $@ $^
+
+Params.o: Params.cpp Params.hpp
+	$(CXX) $(CFLAGS) -c -o $@ $<
+
+decompositor.o: decompositor.cpp Decompositor.hpp
+	$(CXX) $(CFLAGS) -c -o $@ $<
+
+decompositor: decompositor.o Params.o
+	$(CXX) $(LDFLAGS) $(METIS) -o $@ $^
+
+Vertex.o : Vertex.cpp Vertex.hpp
+	$(CXX) $(CFLAGS) -c -o $@ $<
+
+Neighbour.o : Neighbour.cpp Neighbour.hpp
+	$(CXX) $(CFLAGS) -c -o $@ $<
+
+Chunk.o : Chunk.cpp Chunk.hpp
+	$(CXX) $(CFLAGS) -c -o $@ $<
+
+Calculation.o : Calculation.cpp Chunk.hpp
+	$(CXX) $(CFLAGS) -c -o $@ $<
+
+calculation : Calculation.o Chunk.o Neighbour.o Vertex.o Params.o
 	$(CXX) $(LDFLAGS) -o $@ $^
 
 clean:

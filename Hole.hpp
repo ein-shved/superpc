@@ -3,23 +3,25 @@
 
 #include <vector>
 #include <utility>
+#include <cstddef>
+#include <unistd.h>
 
 class Hole {
 public:
-    typedef std::pair<ssize_t, ssize_t> position;
+    typedef std::pair<double, double> position;
 public:
     virtual ~Hole() {}
-    virtual bool contains (size_t i, size_t j, bool &edge) = 0;
-    bool contains (const position &pos, bool &edge)
+    virtual bool contains (double i, double j) = 0;
+    bool contains (const position &pos)
     {
-        return contains(pos.first, pos.second, edge);
+        return contains(pos.first, pos.second);
     }
     virtual Hole *copy () const = 0;
 };
 
 class RectangleHole : public Hole {
 public:
-    RectangleHole (size_t i1 = 0, size_t j1 = 0, size_t i2 = 0, size_t j2 = 0)
+    RectangleHole (double i1 = 0, double j1 = 0, double i2 = 0, double j2 = 0)
         : m_i1(i1) , m_j1(j1), m_i2(i2), m_j2(j2)
     {
         if (m_i1 > m_i2) std::swap(m_i1, m_i2);
@@ -27,16 +29,15 @@ public:
     }
     RectangleHole (const RectangleHole &other)
         : m_i1(other.m_i1)
-        , m_i2(other.m_j1)
-        , m_j1(other.m_i2)
+        , m_j1(other.m_j1)
+        , m_i2(other.m_i2)
         , m_j2(other.m_j2)
     {}
-    virtual bool contains (size_t i, size_t j, bool &edge)
+    virtual bool contains (double i, double j)
     {
         if (!((i >= m_i1) && (i < m_i2) && (j >= m_j1) && (j < m_j2))) {
             return false;
         }
-        edge = (i == m_i1) || (i == m_i2-1) || (j == m_j1) || (j == m_j2 - 1);
         return true;
     }
     virtual RectangleHole *copy () const
@@ -44,8 +45,31 @@ public:
         return new RectangleHole(*this);
     }
 private:
-    size_t m_i1, m_j1, m_i2, m_j2;
+    double m_i1, m_j1, m_i2, m_j2;
 };
+template <typename F>
+class FHole : public Hole {
+public:
+    FHole(const F &f)
+        : m_f(f)
+    {}
+    operator const F& () const{
+        return m_f;
+    }
+    virtual bool contains (double i, double j) {
+        return m_f(i,j);
+    }
+    virtual Hole *copy () const {
+        return new FHole(*this);
+    }
+private:
+    const F &m_f;
+};
+template <typename F>
+static inline FHole<F> fHole (const F &f)
+{
+    return FHole<F> (f);
+}
 
 class Holes : public Hole {
 public:
@@ -85,22 +109,16 @@ public:
         if (h== NULL) return;
         append (*h);
     }
-    virtual bool contains (size_t i, size_t j, bool &edge)
+    virtual bool contains (double i, double j)
     {
-        bool result = false, e = false, r = false;
         for (vector::const_iterator it = m_holes.begin();
             it != m_holes.end(); ++it)
         {
-            r = (*it)->contains(i,j, e);
-            result |= r;
-            if (r && !e) {
-                edge = false;
-                return result;
-            } else if (r && e) {
-                edge = true;
+            if ((*it)->contains(i,j)) {
+                return true;
             }
         }
-        return result;
+        return false;
     }
     virtual Holes *copy() const {
         return new Holes (this);

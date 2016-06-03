@@ -2,6 +2,9 @@
 #include <stdexcept>
 #include <cmath>
 
+#ifndef _MANIFEST_HPP_
+#define _MANIFEST_HPP_
+
 class EdgeCondition {
 public:
     virtual double calc (size_t step, size_t i, size_t j) const = 0;
@@ -86,3 +89,5 @@ private:
     double Hx, Hy;
     size_t m_N, m_M;
 };
+
+#endif /* Manifest.hpp */

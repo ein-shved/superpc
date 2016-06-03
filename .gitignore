@@ -4,3 +4,7 @@
 *.o
 *.vim
 vgcore.*
+*.jpg
+*.pmp
+*.txt
+*.ppm
