@@ -46,10 +46,11 @@ public:
             m_neighbors[i] = v.m_neighbors[i];
         }
     }
+    virtual ~Vertex()
+    {}
 
     virtual void set (double value, size_t i = 0) const
     {
-        //notify_neighbor();
         m_value[ (m_step + i) % 2 ] = value;
     }
     virtual double get (size_t i = 1) const
@@ -59,14 +60,6 @@ public:
     operator double () const
     {
         return get();
-    }
-    double get (Vertex *v, size_t i = 1)
-    {
-        return v->get(i);
-    }
-    double get (Vertex &v, size_t i = 1)
-    {
-        return v.get(i);
     }
 
     void pos (size_t &i, size_t &j) const {
@@ -99,11 +92,11 @@ public:
     {
         return sqrt (square(x1-x2) + square(y1 - y2));
     }
-    double distance (const Vertex &other)
+    double distance (const Vertex &other) const
     {
         return distance (m_x, m_y, other.m_x, other.m_y);
     }
-    double distance ()
+    double distance () const
     {
         return distance(m_x,m_y);
     }
@@ -239,7 +232,6 @@ public:
     }
 
 protected:
-    void notify(Vertex *) { };
     void init (size_t N, size_t M)
     {
         m_i = m_index % N;
@@ -258,7 +250,6 @@ private:
             m_type = Border;
         }
     }
-    void notify_neighbor();
 
 private:
     const size_t m_index;
@@ -313,8 +304,6 @@ public:
         return &m_neighbour;
     }
 
-protected:
-    virtual void notify(Vertex *v);
 private:
     const ::Neighbour &m_neighbour;
 };

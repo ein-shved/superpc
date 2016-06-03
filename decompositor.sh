@@ -34,17 +34,18 @@ cat >$DIR/run.sh <<- EOS
 TIME=0.03
 REALTIME=00:05:00
 
-if [ -z \$1 ]; then
+if [ ! -z \$1 ]; then
     TIME=\$1;
 fi
-if [ -z \$2 ]; then
+if [ ! -z \$2 ]; then
     REALTIME=\$2;
 fi
 
 NAME=$PROC-$NET-\$TIME
 RES=/gpfs/data/edu-vmk-stud14-521-15/lab-pg/results/
 mkdir -p \$RES
-mpisubmit.bg -n 512 -w \$REALTIME -e "OMP_NUM_THREADS=2" --stdout=\$RES/\$NAME.out --stderr=\$RES/\$NAME.err calculation -- -n $NET -m $NET -t \$TIME -o \$RES/\$NAME.ppm -d /gpfs/data/edu-vmk-stud14-521-15/lab-pg/$DIR
+echo mpisubmit.bg -n $PROC -w \$REALTIME -e "OMP_NUM_THREADS=2" --stdout=\$RES/\$NAME.out --stderr=\$RES/\$NAME.err calculation -- -n $NET -m $NET -t \$TIME -o \$RES/\$NAME.ppm -d /gpfs/data/edu-vmk-stud14-521-15/lab-pg/$DIR
+mpisubmit.bg -n $PROC -w \$REALTIME -e "OMP_NUM_THREADS=2" --stdout=\$RES/\$NAME.out --stderr=\$RES/\$NAME.err calculation -- -n $NET -m $NET -t \$TIME -o \$RES/\$NAME.ppm -d /gpfs/data/edu-vmk-stud14-521-15/lab-pg/$DIR
 
 EOS
 

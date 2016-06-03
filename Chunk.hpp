@@ -4,6 +4,7 @@
 #include <istream>
 #include <vector>
 #include <set>
+#include <omp.h>
 
 #include "Vertex.hpp"
 #include "Neighbour.hpp"
@@ -18,6 +19,7 @@ public:
     typedef std::vector<int> Mapping;
     typedef std::vector<VertexSet::iterator> ItMapping;
     typedef std::vector<VertexSet::iterator> Iterators;
+    typedef std::vector<NeighbourSet::iterator> Neighbours;
 public:
     Chunk (std::istream &chunkfile, std::istream &fullfile,
             const Functor &zero, const Functor &edge, const Functor &hole,
@@ -26,22 +28,30 @@ public:
     template <typename F>
     size_t step(const F &f)
     {
-        int size = m_iterators.size();
-
+        int neighbors = m_neighbors.size();
         ++m_step;
 #pragma omp parallel
         {
 #pragma omp for
-            for (int i = 0; i<size; ++i){
+            for (int i = 0; i<(int)m_none_border; ++i){
                 VertexSet:: iterator &it = m_iterators[i];
+                if (neighbors  > 0 &&
+                         omp_get_thread_num() < (int)m_neighbors.size() &&
+                         i % 8 == 0)
+                {
+#pragma omp critical
+                    if (m_it_neighbors[omp_get_thread_num()]->try_step(f)) {
+                        --neighbors;
+                    }
+                }
                 it->set(f(*it, *it->top(), *it->right(), *it->bottom(),
                             *it->left(), m_step, it->x(), it->y()));
             }
         }
-        for (NeighbourSet::iterator it = m_neighbors.begin();
+        if (neighbors > 0) for (NeighbourSet::iterator it = m_neighbors.begin();
                 it != m_neighbors.end(); ++it)
         {
-            it->next();
+            it->step(f);
         }
         return m_step;
     }
@@ -67,6 +77,8 @@ private:
     void result_master();
     void result_master(Values &vals, int rank);
     void result (Values &vals);
+    static bool vertex_comporator(VertexSet::iterator &v1,
+            VertexSet::iterator &v2);
 private:
     size_t m_N, m_M, m_chunks;
     int m_rank;
@@ -79,6 +91,8 @@ private:
     Values m_result;
     Mapping m_decomposition;
     Iterators m_iterators;
+    size_t m_none_border;
+    Neighbours m_it_neighbors;
 };
 
 #endif /* Chunk.hpp */
