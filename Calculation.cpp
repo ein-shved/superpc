@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include "Heat.hpp"
+#include <omp.h>
 
 using namespace std;
 using namespace heat;
@@ -72,8 +73,10 @@ int main (int argc, char *argv[])
     Chunk chunk(local, global, *Z, *E, *H, jacoby.T());
     MPI_Barrier(MPI_COMM_WORLD);
     if (rank == 0) {
-        cout <<"Calculating..." <<endl;
+        cout <<"Calculating, using " << omp_get_num_procs()
+            << " OpenMP threads..." <<endl;
     }
+    double time = MPI_Wtime();
     while (chunk.step()*jacoby.T() < t) {
         chunk.step(jacoby);
         if (rank == 0 && chunk.step() % 100 == 0) {
@@ -81,9 +84,12 @@ int main (int argc, char *argv[])
                 chunk.step() *jacoby.T() << endl;
         }
     }
+    time = MPI_Wtime() - time;
     if (rank == 0) {
-        cout <<"Finish on step" << chunk.step() << " with time=" <<
-            chunk.step() * jacoby.T() <<endl;
+        cout.precision(5);
+        cout <<"Finish on step " << chunk.step() << " with math-time=" <<
+            chunk.step() * jacoby.T() << " and run-time=" << time <<
+            "s (+/-" << MPI_Wtick() <<"s)"<< endl;
     }
 
     if (!out.empty()) {
@@ -124,7 +130,7 @@ static void result (string filename, Chunk &chunk)
         f << R(v) << " " << G(v) << " " << B(v) << endl;
     }
     f.close();
-    cout.precision(17);
+    cout.precision(5);
     cout << "Result displayed  in '" << filename << "' Min=" << min <<
         " Max=" << max << endl;
 }

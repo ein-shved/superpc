@@ -125,6 +125,13 @@ public:
         set_bottom(b);
         set_left(l);
     }
+    bool full() const
+    {
+        return (m_neighbors[0]!= NULL &&
+                m_neighbors[1] != NULL &&
+                m_neighbors[2]!=NULL &&
+                m_neighbors[3]!= NULL);
+    }
     void set(const Vertex *v, Direction d) const
     {
         m_neighbors[d] = (Vertex *)v;

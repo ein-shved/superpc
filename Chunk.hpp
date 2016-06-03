@@ -2,6 +2,8 @@
 #define _CHUNK_HPP_
 
 #include <istream>
+#include <vector>
+#include <set>
 
 #include "Vertex.hpp"
 #include "Neighbour.hpp"
@@ -14,6 +16,8 @@ public:
     typedef std::set<CondVertex<Functor> > CondVertexSet;
     typedef std::vector<double> Values;
     typedef std::vector<int> Mapping;
+    typedef std::vector<VertexSet::iterator> ItMapping;
+    typedef std::vector<VertexSet::iterator> Iterators;
 public:
     Chunk (std::istream &chunkfile, std::istream &fullfile,
             const Functor &zero, const Functor &edge, const Functor &hole,
@@ -22,12 +26,17 @@ public:
     template <typename F>
     size_t step(const F &f)
     {
+        int size = m_iterators.size();
+
         ++m_step;
-        for (VertexSet::iterator it = m_vertecies.begin();
-                it != m_vertecies.end(); ++it)
+#pragma omp parallel
         {
-            it->set(f(*it, *it->top(), *it->right(), *it->bottom(),
-                        *it->left(), m_step, it->x(), it->y()));
+#pragma omp for
+            for (int i = 0; i<size; ++i){
+                VertexSet:: iterator &it = m_iterators[i];
+                it->set(f(*it, *it->top(), *it->right(), *it->bottom(),
+                            *it->left(), m_step, it->x(), it->y()));
+            }
         }
         for (NeighbourSet::iterator it = m_neighbors.begin();
                 it != m_neighbors.end(); ++it)
@@ -42,15 +51,18 @@ public:
 
     const Values *result();
 private:
-    void connect(const Mapping &decomposition);
-    void connect(const Mapping &decomposition, const Vertex &v);
-    void connect(const Mapping &decomposition, const Vertex &v,
+    void connect(const Mapping &decomposition, const ItMapping &);
+    void connect(const Mapping &decomposition, const ItMapping &,
+            const Vertex &v);
+    void connect(const Mapping &decomposition, const ItMapping &,
+            const Vertex &v,
             size_t i, size_t j, Vertex::Direction d);
     void connect_edge(const Vertex &v, Vertex::Direction, size_t index,
                         int rank);
     void connect_neighbor(const Vertex &v, Vertex::Direction, size_t index,
                         int rank);
-    void connect_inner(const Vertex &v, Vertex::Direction, size_t index);
+    void connect_inner(const Vertex &v, Vertex::Direction, size_t index,
+            const ItMapping &);
     void result_slave();
     void result_master();
     void result_master(Values &vals, int rank);
@@ -66,6 +78,7 @@ private:
     double m_T;
     Values m_result;
     Mapping m_decomposition;
+    Iterators m_iterators;
 };
 
 #endif /* Chunk.hpp */
