@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <omp.h>
 
 using namespace std;
 
@@ -20,39 +21,48 @@ Chunk::Chunk(istream &chunkfile, istream &fullfile,
     fullfile >> m_M;
     fullfile >> m_chunks;
 
+    ItMapping mapping(m_N*m_M,m_vertecies.end());
     while(!chunkfile.eof()) {
         chunkfile >> index;
         VertexSet::iterator it = m_vertecies.insert(
                 Vertex(index, m_N, m_M, m_step)).first;
         it->set(f_zero(it->x(), it->y(), 0));
         it->set(it->get(0), 1);
+        mapping[index] = it;
     }
     m_decomposition.resize(m_N*m_M);
     for (size_t i = 0; (i < m_N*m_M) && !fullfile.eof(); ++i) {
         fullfile >> m_decomposition[i];
     }
-    connect(m_decomposition);
+    connect(m_decomposition, mapping);
     if (m_rank != 0) {
         m_decomposition.resize(0);
     }
+    for (VertexSet::iterator it = m_vertecies.begin();
+            it != m_vertecies.end(); ++it)
+    {
+        m_iterators.push_back(it);
+    }
+
 }
-void Chunk::connect(const std::vector<int> &decomposition)
+void Chunk::connect(const std::vector<int> &decomposition, const ItMapping &map)
 {
     for (VertexSet::iterator it = m_vertecies.begin(); it != m_vertecies.end();
             ++it)
     {
-        connect (decomposition, *it);
+        connect (decomposition, map, *it);
     }
 }
-void Chunk::connect(const std::vector<int> &decomposition, const Vertex &v)
+void Chunk::connect(const Mapping &decomposition, const ItMapping &map,
+        const Vertex &v)
 {
-    connect (decomposition, v, v.i() - 1, v.j(), Vertex::Left);
-    connect (decomposition, v, v.i() + 1, v.j(), Vertex::Right);
-    connect (decomposition, v, v.i(), v.j() - 1, Vertex::Top);
-    connect (decomposition, v, v.i(), v.j() + 1, Vertex::Bottom);
+    connect (decomposition, map, v, v.i() - 1, v.j(), Vertex::Left);
+    connect (decomposition, map, v, v.i() + 1, v.j(), Vertex::Right);
+    connect (decomposition, map, v, v.i(), v.j() - 1, Vertex::Top);
+    connect (decomposition, map, v, v.i(), v.j() + 1, Vertex::Bottom);
 }
-void Chunk::connect(const std::vector<int> &decomposition, const Vertex &v,
-        size_t i, size_t j, Vertex::Direction d)
+void Chunk::connect(const std::vector<int> &decomposition, const ItMapping &map,
+        const Vertex &v, size_t i, size_t j, Vertex::Direction d)
 {
     size_t index = Vertex::index(i,j,m_N,m_M);
     int rank = decomposition[index];
@@ -63,7 +73,7 @@ void Chunk::connect(const std::vector<int> &decomposition, const Vertex &v,
         if (rank != m_rank) {
             connect_neighbor(v, d, index, rank);
         } else {
-            connect_inner(v, d, index);
+            connect_inner(v, d, index, map);
         }
     }
 }
@@ -90,10 +100,11 @@ void Chunk::connect_neighbor(const Vertex &v, Vertex::Direction d, size_t index,
     }
     it->add(index, &v, d);
 }
-void Chunk::connect_inner(const Vertex &v, Vertex::Direction d, size_t index)
+void Chunk::connect_inner(const Vertex &v, Vertex::Direction d, size_t index,
+        const ItMapping &map)
 {
-    VertexSet::iterator it = find(m_vertecies.begin(), m_vertecies.end(),
-            index);
+    VertexSet::iterator it = map[index];
+    if (it == m_vertecies.end()) exit(1);
     v.set(*it, d);
     it->set(v, Vertex::reverse(d));
 }

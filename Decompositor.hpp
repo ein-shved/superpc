@@ -1,4 +1,3 @@
-
 #ifndef _DECOMPOSITOR_HPP_
 #define _DECOMPOSITOR_HPP
 
@@ -6,6 +5,7 @@
 #include "Matrix.hpp"
 #include "Heat.hpp"
 #include <string>
+#include <cstring>
 #include <metis.h>
 #include <fstream>
 #include <sstream>
@@ -123,8 +123,14 @@ public:
 
         std::cout << "Running decompositor with nvtxs=" << nvtxs << " nedjs=" <<
             nedjs << " nparts=" << nparts << std::endl;
-        int result = METIS_PartGraphKway(&nvtxs, &ncon, xadj, adjncy, vwgt,
-                NULL, NULL, &nparts, NULL, NULL, NULL, &o_objval, o_part);
+        int result;
+        if (m_proc > 1) {
+            result = METIS_PartGraphKway(&nvtxs, &ncon, xadj, adjncy, vwgt,
+                    NULL, NULL, &nparts, NULL, NULL, NULL, &o_objval, o_part);
+        } else {
+            memset(o_part, 0, sizeof (idx_t) * nvtxs);
+            result = METIS_OK;
+        }
         std::cout << "Decomposition done with result='" << str_result(result)
             <<"' (" << result << ")" << std::endl;
         if (result != METIS_OK) return result;
