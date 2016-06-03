@@ -26,12 +26,17 @@ protected:
         return NULL;
     }
     void add(const Hole *hole) {
-        Hole *tmp = m_hole;
-        if (tmp == NULL) {
+        Holes *tmp;
+        if (m_hole == NULL) {
             m_hole = hole == NULL ? NULL : hole->copy();
             return;
         }
-        m_hole = new Holes(tmp, hole);
+        tmp = new Holes();
+        tmp->append(m_hole);
+        tmp->append(hole);
+        delete tmp;
+        m_hole = tmp;
+
     }
     void add(const Hole &hole) {
         return add(&hole);
@@ -41,23 +46,25 @@ private:
 };
 class Test_HoleParams : public __base_params {
 public:
-    Test_HoleParams() :
-        __base_params(Holes{
-            RectangleHole(1./4, 1./8, 3*1./8, 1./4),
-            RectangleHole(1./8, 5*1./8, 1./4, 6*1./8),
-            RectangleHole(5*1./8, 6*1./8, 6*1./8, 7*1./8),
-            RectangleHole(6*1./8, 3*1./8, 7*1./8, 1./2),
-            RectangleHole(3*1./8, 1./2, 1./2, 5*1./8),
-            RectangleHole(3*1./8 - 1./16, 1./2 - 1./16, 1./2 - 1./16, 5*1./8 - 1./16)})
-    {    }
+    Test_HoleParams()
+    {
+        add(RectangleHole(1./4, 1./8, 3*1./8, 1./4));
+        add(RectangleHole(1./8, 5*1./8, 1./4, 6*1./8));
+        add(RectangleHole(5*1./8, 6*1./8, 6*1./8, 7*1./8));
+        add(RectangleHole(6*1./8, 3*1./8, 7*1./8, 1./2));
+        add(RectangleHole(3*1./8, 1./2, 1./2, 5*1./8));
+        add(RectangleHole(3*1./8 - 1./16, 1./2 - 1./16, 1./2 - 1./16, 5*1./8 - 1./16));
+    }
 };
 const static Test_HoleParams Test;
 
 class Double_HoleParams:public __base_params {
 public:
-    Double_HoleParams() :
-        __base_params(Holes(fHole(up), fHole(down)))
-    {}
+    Double_HoleParams()
+    {
+        add(fHole(up));
+        add(fHole(down));
+    }
 private:
     static bool down(double x, double y) {
         return y < x*x;
@@ -70,9 +77,11 @@ const static Double_HoleParams Double;
 
 class Line_HoleParams : public __base_params {
 public:
-    Line_HoleParams() :
-        __base_params(Holes(fHole(up), fHole(down)))
-        {}
+    Line_HoleParams()
+    {
+        add(fHole(up));
+        add(fHole(down));
+    }
 private:
     static bool down(double x, double y) {
         return y < 0.5 - x;

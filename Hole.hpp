@@ -66,7 +66,7 @@ private:
     const F &m_f;
 };
 template <typename F>
-static inline FHole<F> fHole (const F &f)
+static inline FHole<F> fHole (const F f)
 {
     return FHole<F> (f);
 }

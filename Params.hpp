@@ -15,9 +15,9 @@ public:
 
 class Functor {
 public:
-typedef double (F)(double, double, double);
+typedef double (*F)(double, double, double);
 public:
-    Functor(const F &f)
+    Functor(const F f)
         : m_f(f)
     {}
     Functor(const Functor &f)
@@ -33,7 +33,7 @@ public:
     }
     static const Functor &get(const std::string &name);
 private:
-    const F &m_f;
+    const F m_f;
 };
 
 #endif /* Params.hpp */

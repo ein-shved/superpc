@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include "Heat.hpp"
+#include <iostream>
 
 using namespace std;
 using namespace heat;
@@ -62,8 +63,8 @@ int main (int argc, char *argv[])
     stringstream lstream;
     lstream << decomposition << "/" << rank;
 
-    fstream local (lstream.str());
-    fstream global (decomposition + "/global");
+    fstream local (lstream.str().c_str());
+    fstream global ((decomposition + "/global").c_str());
 
     if (rank == 0) {
         cout <<"Preparing data..." <<endl;
@@ -98,7 +99,7 @@ static void result (string filename, Chunk &chunk)
     const Chunk::Values *v = chunk.result();
     if (v == NULL) return;
 
-    fstream f (filename, ios_base::out);
+    fstream f (filename.c_str(), ios_base::out);
     f << "P3" << endl;
     f << "# " << filename << endl;
     f << chunk.N() << " " << chunk.M() << endl;
