@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <cmath>
+#include <utility>
 
 template <typename T>
 static inline T square(T v) {
@@ -29,14 +30,8 @@ public:
         , m_step(step)
         , m_type(type)
     {
-        m_i = m_index % N;
-        m_j = m_index / N;
-        m_x = (1./N) * m_i;
-        m_y = (1./N) * m_j;
+        init(N, M);
         m_value[0] = m_value[1] = val;
-        for (size_t i = 0; i < 4; ++i) {
-            m_neighbors[i] = NULL;
-        }
     }
     Vertex (const Vertex &v)
         : m_index(v.m_index)
@@ -52,18 +47,26 @@ public:
         }
     }
 
-    virtual void set (double value, size_t m_i = 0)
+    virtual void set (double value, size_t i = 0) const
     {
-        notify_neighbor();
-        m_value[ (m_step + m_i) % 2 ] = value;
+        //notify_neighbor();
+        m_value[ (m_step + i) % 2 ] = value;
     }
-    virtual double get (size_t m_i = 1)
+    virtual double get (size_t i = 1) const
     {
         return m_value[ (m_step + m_i) % 2 ];
     }
-    operator double ()
+    operator double () const
     {
         return get();
+    }
+    double get (Vertex *v, size_t i = 1)
+    {
+        return v->get(i);
+    }
+    double get (Vertex &v, size_t i = 1)
+    {
+        return v.get(i);
     }
 
     void pos (size_t &i, size_t &j) const {
@@ -104,10 +107,10 @@ public:
     {
         return distance(m_x,m_y);
     }
-    size_t step() {
+    size_t step() const {
         return m_step;
     }
-    bool inner() {
+    bool inner() const {
         return m_type == Inner || m_type == Border;
     }
 
@@ -121,6 +124,14 @@ public:
         set_right(r);
         set_bottom(b);
         set_left(l);
+    }
+    void set(const Vertex *v, Direction d) const
+    {
+        m_neighbors[d] = (Vertex *)v;
+    }
+    void set(const Vertex &v, Direction d) const
+    {
+        m_neighbors[d] = (Vertex *)&v;
     }
     void set_top(Vertex *top)
     {
@@ -138,9 +149,30 @@ public:
     {
         m_neighbors[Left] = left;
     }
+
+    void set_top(Vertex &top)
+    {
+        m_neighbors[Top] = &top;
+    }
+    void set_right(Vertex &right)
+    {
+        m_neighbors[Right] = &right;
+    }
+    void set_bottom(Vertex &bottom)
+    {
+        m_neighbors[Bottom] = &bottom;
+    }
+    void set_left(Vertex &left)
+    {
+        m_neighbors[Left] = &left;
+    }
     size_t degree(const ::Neighbour *nb);
 
     Vertex *neighbor(Direction d)
+    {
+        return m_neighbors[d];
+    }
+    const Vertex *neighbor(Direction d) const
     {
         return m_neighbors[d];
     }
@@ -148,42 +180,104 @@ public:
     Vertex *right() { return neighbor(Right); }
     Vertex *bottom() { return neighbor(Bottom); }
     Vertex *left() { return neighbor(Left); }
+
+    const Vertex *top() const { return neighbor(Top); }
+    const Vertex *right() const { return neighbor(Right); }
+    const Vertex *bottom() const { return neighbor(Bottom); }
+    const Vertex *left() const { return neighbor(Left); }
+
+    bool operator < (const Vertex &other) const {
+        return m_index < other.m_index;
+    }
+    bool operator == (const Vertex &other) const {
+        return m_index == other.m_index;
+    }
+    bool operator > (const Vertex &other) const {
+        return m_index > other.m_index;
+    }
+    bool operator < (size_t index) const {
+        return m_index < index;
+    }
+    bool operator == (size_t index) const {
+        return m_index == index;
+    }
+    bool operator > (size_t index) const {
+        return m_index > index;
+    }
+
+    static Direction reverse(Direction d) {
+        switch(d) {
+        case Top:
+            return Bottom;
+        case Right:
+            return Left;
+        case Bottom:
+            return Top;
+        case Left:
+            return Right;
+        }
+        return d;
+    }
+    static size_t index (size_t i, size_t j, size_t N, size_t M = 0)
+    {
+        return j*N + i;
+    }
+    static size_t index (double x, double y, size_t N, size_t M)
+    {
+        return index ((size_t) x*N, (size_t)y*M, N, M);
+    }
+    static std::pair<size_t, size_t> pos (size_t index, size_t N, size_t M = 0)
+    {
+        return std::pair<size_t, size_t>(index % N, index /N);
+    }
+
 protected:
     void notify(Vertex *) { };
+    void init (size_t N, size_t M)
+    {
+        m_i = m_index % N;
+        m_j = m_index / N;
+        m_x = (1./N) * m_i;
+        m_y = (1./N) * m_j;
+        for (size_t i = 0; i < 4; ++i) {
+            m_neighbors[i] = NULL;
+        }
+    }
 private:
     void check_type (Vertex *nb)
     {
         if (nb == NULL) return;
-        if (m_type == Inner && !nb->inner()) {
+        if (m_type == Inner && nb->m_type == Neighbour) {
             m_type = Border;
         }
     }
     void notify_neighbor();
 
 private:
-    size_t m_index;
+    const size_t m_index;
     size_t m_i, m_j;
     double m_x, m_y;
-    double m_value[2];
+    mutable double m_value[2];
     size_t &m_step;
-    Vertex *m_neighbors[4];
+    mutable Vertex *m_neighbors[4];
     Type m_type;
 };
 
-template <typename F, Vertex::Type VertexType>
+template <typename F>
 class CondVertex : public Vertex {
 public:
     CondVertex (size_t index, size_t N, size_t M, size_t &step,
-                double t, const F &f)
-        : Vertex (index, N, M, step, 0, VertexType)
-        , m_T(t)
+                double t, const F &f, Type type)
+        : Vertex (index, N, M, step, 0, type)
         , m_F (f)
+        , m_T(t)
         , m_step(step)
     {
         Vertex::set(m_F(x(), y(), step*m_T));
     }
-    virtual void set(double) { };
-    virtual double get(double)
+    using Vertex::set;
+    virtual void set(double) const { };
+    virtual double get(size_t) const
     {
         if (m_step != step()){
             m_step = step();
@@ -194,27 +288,13 @@ public:
 private:
     F m_F;
     double m_T;
-    size_t m_step;
+    mutable size_t m_step;
 };
-template <typename F> class EdgeVertex : public CondVertex<F, Vertex::Edge> {};
-template <typename F> class HoleVertex : public CondVertex<F, Vertex::Hole> {};
-template <typename F>
-static inline EdgeVertex<F> *edgeVertex (size_t index, size_t N, size_t M,
-                                         size_t &step, double t, const F &f)
-{
-    return new EdgeVertex<F>(index, N, M, step, t, f);
-}
-template <typename F>
-static inline HoleVertex<F> *holeVertex (size_t index, size_t N, size_t M,
-                                         size_t &step, double t, const F &f)
-{
-    return new HoleVertex<F>(index, N, M, step, t, f);
-}
 
 class NeighbourVertex : public Vertex {
 public:
     NeighbourVertex (size_t index, size_t N, size_t M, size_t &step,
-                     ::Neighbour &nb)
+                     const ::Neighbour &nb)
         : Vertex(index, N, M, step, Vertex::Neighbour)
         , m_neighbour(nb)
     {}
@@ -222,14 +302,14 @@ public:
         : Vertex(v)
         , m_neighbour(v.m_neighbour)
     {}
-    ::Neighbour *neighbour() {
+    const ::Neighbour *neighbour() {
         return &m_neighbour;
     }
 
 protected:
     virtual void notify(Vertex *v);
 private:
-    ::Neighbour &m_neighbour;
+    const ::Neighbour &m_neighbour;
 };
 
 #endif /* Vertex.hpp */

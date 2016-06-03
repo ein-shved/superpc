@@ -59,6 +59,14 @@ public:
     {
         m_proc = proc;
     }
+    bool hole (position p) const
+    {
+        bool h = m_hole->contains(((double)p.first)/m_N,
+                    ((double)p.second)/m_M);
+        return h || p.first == 0 || p.second == 0 ||
+            p.first == (ssize_t)m_N - 1 ||
+            p.second == (ssize_t)m_M -1;
+    }
     int run() const
     {
         idx_t nvtxs = m_N * m_M;
@@ -70,14 +78,11 @@ public:
         idx_t nparts = m_proc;
         idx_t o_objval;
         idx_t *o_part = new idx_t [nvtxs];
-        bool hole;
 
         xadj[0] = 0;
         for (size_t i=0, j = 0; i< m_N*m_M; ++i) {
             position p = pos(i), n_p;
-            hole = m_hole->contains(((double)p.first)/m_N,
-                    ((double)p.second)/m_M);
-            if (hole) {
+            if (this->hole(p)) {
                 xadj[i+1]  = j;
                 vwgt[i] = 0;
                 continue;
@@ -126,7 +131,7 @@ public:
 
         std::fstream global (m_path + "/global", std::ios_base::out);
         std::fstream ppm (m_path + "/map.ppm", std::ios_base::out);
-        global << m_N << " "<< m_M << std::endl;
+        global <<  m_N << " "<< m_M << " " << m_proc << std::endl;
         ppm << "P3" << std::endl;
         ppm << "# " << "map.ppm" << std::endl;
         ppm << m_N << " " << m_M << std::endl;
@@ -141,10 +146,14 @@ public:
         }
         for (size_t i = 0; i < (size_t)nvtxs; ++i) {
             position p = pos(i);
-            hole = m_hole->contains(((double)p.first)/m_N,
-                    ((double)p.second)/m_M);
-            if (hole) {
-                global << -1 << std::endl;
+            if (hole(p)) {
+                if (m_hole->contains(((double)p.first)/m_N,
+                    ((double)p.second)/m_M))
+                {
+                    global << -2 << std::endl;
+                } else {
+                    global << -1 << std::endl;
+                }
                 ppm << 255 << " " << 255 << " " << 255 << std::endl;
             } else {
                 global << o_part[i] << std::endl;
@@ -206,10 +215,7 @@ public:
     }
     ssize_t index (const position &pos) const
     {
-        bool hole;
-        hole = m_hole->contains(((double)pos.first)/m_N,
-                ((double)pos.second)/m_M);
-        if (hole) {
+        if (hole(pos)) {
             return -1;
         }
         if (pos.first < 0 || pos.second < 0 || pos.first >= (ssize_t)m_N ||

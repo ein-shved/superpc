@@ -17,23 +17,6 @@ protected:
         if (m_hole != NULL)
             delete m_hole;
     }
-#if 0
-    template <typename F> void zero (F f) {
-        m_edge.zero(f);
-    }
-    template <typename F> void left (F f) {
-        m_edge.left(f);
-    }
-    template <typename F> void right (F f) {
-        m_edge.right(f);
-    }
-    template <typename F> void top (F f) {
-        m_edge.top(f);
-    }
-    template <typename F> void bottom (F f) {
-        m_edge.bottom(f);
-    }
-#endif
     virtual const Hole *hole() const
     {
         return m_hole;
@@ -116,7 +99,7 @@ const HoleParams *HoleParams::get (const string &in_name)
     return it->second;
 }
 
-#define PI (3.14)
+#define PI (3.14159265358979)
 double Functor_zero1(double x, double y, double t){
     return x+y - 1;
 }
@@ -135,6 +118,12 @@ double Functor_top1(double x, double y, double t){
 double Functor_bottom1(double x, double y, double t){
     return 2*sin(2*PI*x);
 }
+double Functor_edge1(double x, double y, double t){
+    return sin(PI*x) + sin(PI*y);
+}
+double Functor_hole1(double x, double y, double t){
+    return 2;
+}
 double __zero(double x, double y, double t){
     return 0;
 }
@@ -150,6 +139,8 @@ const Functor &Functor::get(const std::string &in_name)
         FUNCTOR(right1);
         FUNCTOR(top1);
         FUNCTOR(bottom1);
+        FUNCTOR(edge1);
+        FUNCTOR(hole1);
     }
     static Functor zero(__zero);
     map<string, Functor>::iterator it = functors.find(in_name);

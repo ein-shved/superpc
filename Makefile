@@ -5,7 +5,7 @@ LD          =   mpicc
 LDFLAGS     =   -fopenmp -lm
 METIS		= 	-lmetis
 
-all: decompositor
+all: decompositor calculation
 
 tests: matrix-test step-test exchanger-test mpi-test jacoby-test
 
@@ -76,6 +76,18 @@ decompositor: decompositor.o Params.o
 
 Vertex.o : Vertex.cpp Vertex.hpp
 	$(CXX) $(CFLAGS) -c -o $@ $<
+
+Neighbour.o : Neighbour.cpp Neighbour.hpp
+	$(CXX) $(CFLAGS) -c -o $@ $<
+
+Chunk.o : Chunk.cpp Chunk.hpp
+	$(CXX) $(CFLAGS) -c -o $@ $<
+
+Calculation.o : Calculation.cpp Chunk.hpp
+	$(CXX) $(CFLAGS) -c -o $@ $<
+
+calculation : Calculation.o Chunk.o Neighbour.o Vertex.o Params.o
+	$(CXX) $(LDFLAGS) -o $@ $^
 
 clean:
 	rm -rf matrix-test *.o
