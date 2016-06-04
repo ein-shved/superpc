@@ -101,10 +101,10 @@ const HoleParams *HoleParams::get (const string &in_name)
 
 #define PI (3.14159265358979)
 double Functor_zero1(double x, double y, double t){
-    return x+y - 1;
+    return x*y;
 }
 double Functor_hole_edge1(double x, double y, double t){
-    return 2;
+    return 1;
 }
 double Functor_left1(double x,double y, double t){
     return 2*sin(2*PI*y);
@@ -122,7 +122,17 @@ double Functor_edge1(double x, double y, double t){
     return sin(PI*x) + sin(PI*y);
 }
 double Functor_hole1(double x, double y, double t){
-    return 2;
+    return sin(100*PI*t);
+}
+double Functor_foo1(double x, double y, double t){
+    return sin(100*PI*t);
+}
+
+double Functor_ant(double x, double y, double t){
+    return x*x + y*y + sin(100*PI*t);
+}
+double Functor_ant_foo(double x, double y, double t){
+    return 100*PI*cos(PI*t) - 4;
 }
 double __zero(double x, double y, double t){
     return 0;
@@ -141,6 +151,8 @@ const Functor &Functor::get(const std::string &in_name)
         FUNCTOR(bottom1);
         FUNCTOR(edge1);
         FUNCTOR(hole1);
+        FUNCTOR(ant);
+        FUNCTOR(ant_foo);
     }
     static Functor zero(__zero);
     map<string, Functor>::iterator it = functors.find(in_name);

@@ -230,6 +230,11 @@ public:
     {
         return std::pair<size_t, size_t>(index % N, index /N);
     }
+    static std::pair<double, double> dpos (size_t index, size_t N, size_t M)
+    {
+        std::pair<size_t, size_t> p = pos(index, N, M);
+        return std::pair<double, double> (p.first*1./N, p.second*1./M);
+    }
 
 protected:
     void init (size_t N, size_t M)
@@ -269,24 +274,16 @@ public:
         : Vertex (index, N, M, step, 0, type)
         , m_F (f)
         , m_T(t)
-        , m_step(step)
-    {
-        Vertex::set(m_F(x(), y(), step*m_T));
-    }
+    {}
     using Vertex::set;
-    virtual void set(double) const { };
-    virtual double get(size_t) const
+    virtual void set(double, size_t i=0 ) const { };
+    virtual double get(size_t i = 1) const
     {
-        if (m_step != step()){
-            m_step = step();
-            Vertex::set(m_F(x(), y(), m_step*m_T));
-        }
-        return Vertex::get();
+        return m_F(x(), y(), step()*m_T);
     };
 private:
     F m_F;
     double m_T;
-    mutable size_t m_step;
 };
 
 class NeighbourVertex : public Vertex {

@@ -64,6 +64,8 @@ void Chunk::connect(const std::vector<int> &decomposition, const ItMapping &map)
 void Chunk::connect(const Mapping &decomposition, const ItMapping &map,
         const Vertex &v)
 {
+    v.set(f_zero(v.x(), v.y(), 0));
+    v.set(f_zero(v.x(), v.y(), 0), 1);
     connect (decomposition, map, v, v.i() - 1, v.j(), Vertex::Left);
     connect (decomposition, map, v, v.i() + 1, v.j(), Vertex::Right);
     connect (decomposition, map, v, v.i(), v.j() - 1, Vertex::Top);

@@ -3,13 +3,16 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <utility>
 #include "Heat.hpp"
 #include <omp.h>
 
 using namespace std;
 using namespace heat;
 
-static void result (string filename, Chunk &chunk, double t);
+static pair<double, double> result (string filename, Chunk &chunk, double t,
+                    const Functor *an, vector<double> *res);
+
 int main (int argc, char *argv[])
 {
     size_t N = 512, M = 512;
@@ -18,6 +21,7 @@ int main (int argc, char *argv[])
     const Functor *E = &Functor::get("edge1");
     const Functor *H = &Functor::get("hole1");
     const Functor *F = &Functor::get("foo1");
+    const Functor *analitic = NULL;
     int c;
 
     double T = 0.03, t_step = -1, t=0;
@@ -28,7 +32,7 @@ int main (int argc, char *argv[])
     MPI_Comm_rank(comm, &rank);
     MPI_Comm_size(comm, &size);
 
-    while ( (c = getopt(argc, argv, "n:m:o:d:t:T:Z:E:H:F")) != -1) {
+    while ( (c = getopt(argc, argv, "n:m:o:d:t:T:Z:E:H:F:a:")) != -1) {
         switch (c){
         case 'n':
             N = atoi(optarg);
@@ -60,6 +64,9 @@ int main (int argc, char *argv[])
         case 'T':
             T = atof(optarg);
             break;
+        case'a':
+            analitic = &Functor::get(optarg);
+            break;
         }
     }
     if (t_step < 0) {
@@ -89,16 +96,43 @@ int main (int argc, char *argv[])
             cout <<"Will generate result on each t=" << t_step <<endl;
         }
     }
+
+    fstream defs;
+    if (rank == 0) {
+        defs.open((out + "-eps.txt").c_str(), ios_base::out);
+    }
+    vector<double> results;
+    if (!out.empty()) {
+        result(out, chunk, jacoby.T(), analitic, NULL);
+    };
+
     double time = MPI_Wtime();
     while (chunk.step()*jacoby.T() < T) {
+        bool get_eps = false;
         if (chunk.step()*jacoby.T() > t && !out.empty()){
-            result(out, chunk, jacoby.T());
+            get_eps = true;
+            const Chunk::Values *v = chunk.result();
+            if (v != NULL) {
+                results = *v;
+            }
             t += t_step;
         }
         chunk.step(jacoby);
         if (rank == 0 && chunk.step() % 100 == 0) {
             cout << "Step=" << chunk.step() << " T=" <<
                 chunk.step() *jacoby.T() << endl;
+        }
+        if (get_eps){
+            pair<double, double> def = result(out,
+                    chunk, jacoby.T(), analitic, &results);
+            if (rank == 0) {
+                defs << "Step=" << chunk.step() << " T=" <<
+                    chunk.step() *jacoby.T() << " Eps=" << def.first;
+                if (analitic != NULL) {
+                    defs << " Analytic distance="<< def.second;
+                }
+                defs << endl;
+            }
         }
     }
     time = MPI_Wtime() - time;
@@ -110,46 +144,67 @@ int main (int argc, char *argv[])
     }
 
     if (!out.empty()) {
-        result(out, chunk, jacoby.T());
+        result(out, chunk, jacoby.T(), analitic, NULL);
     };
 
     MPI_Finalize();
     return 0;
 }
-static void result (string filename, Chunk &chunk, double t)
+static pair<double, double> result (string filename, Chunk &chunk, double t,
+                    const Functor *an, vector<double> *res)
 {
     const Chunk::Values *v = chunk.result();
     static size_t n = 0;
-    if (v == NULL) return;
+    if (v == NULL) return pair<double, double>(0,0);
 
     stringstream sname;
-    sname << filename << "-" << ++n <<".ppm";
+    stringstream aname;
+    sname << filename << "-" << n <<".ppm";
+    aname << filename << "-an-" << n++ <<".ppm";
     fstream f (sname.str().c_str(), ios_base::out);
     f << "P3" << endl;
     f << "# " << filename << endl;
     f << chunk.N() << " " << chunk.M() << endl;
     f << 255 << endl;
+    fstream a;
+    if (an != NULL) {
+        a.open(aname.str(), ios_base::out);
+        a << "P3" << endl;
+        a << "# " << filename << endl;
+        a << chunk.N() << " " << chunk.M() << endl;
+        a << 255 << endl;
+    }
 
     double min = NAN, max = NAN;
-    for (Chunk::Values::const_iterator it = v->begin(); it != v->end(); ++it) {
-        if (isnan(*it)) {
-            continue;
-        }
-        if (isnan(min) || min > *it) {
-            min = *it;
-        }
-        if (isnan(max) || max < *it) {
-            max = *it;
-        }
-    }
     min = 0;
     max = 2;
 
-    for (Chunk::Values::const_iterator it = v->begin(); it != v->end(); ++it) {
+    size_t i = 0;
+    double d_eps = 0, d_an = 0;
+    for (Chunk::Values::const_iterator it = v->begin();
+            it != v->end(); ++it, ++i) {
         double v = *it;
         v = (v - min)/(max - min);
         f << R(v) << " " << G(v) << " " << B(v) << endl;
+        if (an != NULL){
+            pair<double,double> pos= Vertex::dpos(i, chunk.N(), chunk.M());
+            double v_an = (*an)(pos.first, pos.second, chunk.step()*t);
+            if (!isnan(v)) {
+                d_an = std::max(d_an, fabs(v_an - *it));
+            }
+            v_an = (v_an - min)/(max - min);
+            a << R(v_an) << " " << G(v_an) << " " << B(v_an) << endl;
+        }
+        if (res != NULL && res->size() > 0) {
+            if (!isnan(v) && !isnan((*res)[i]) ) {
+                d_eps += square((*res)[i] - *it);
+            }
+        }
     }
     f.close();
+    if (an != NULL) {
+        a.close();
+    }
     cout.precision(5);
+    return pair<double, double>(sqrt(d_eps), d_an);
 }

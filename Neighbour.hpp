@@ -36,9 +36,7 @@ public:
         int flag;
         if (m_step >= step()) return false;
         if (m_step == 0) {
-            finish_rcv();
-            calc(f);
-            finish_send();
+            finish(f);
             return true;
         }
         MPI_Test(&m_rcv_req, &flag, MPI_STATUS_IGNORE);

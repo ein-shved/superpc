@@ -41,7 +41,7 @@ public:
     Jacoby2(size_t N, size_t M, const Functor &f)
         : m_Hx((1.)/N)
         , m_Hy((1.)/M)
-        , m_T(std::min(m_Hx*m_Hx/2, m_Hy*m_Hy/2)/5)
+        , m_T(std::min(m_Hx*m_Hx/2, m_Hy*m_Hy/2)/20)
         , m_f(f)
     {}
 
