@@ -73,16 +73,16 @@ decompositor.o: decompositor.cpp Decompositor.hpp
 decompositor: decompositor.o Params.o
 	$(CXX) $(LDFLAGS) $(METIS) -o $@ $^
 
-Vertex.o : Vertex.cpp Vertex.hpp
+Vertex.o : Vertex.cpp Vertex.hpp Neighbour.hpp Chunk.hpp
 	$(CXX) $(CFLAGS) -c -o $@ $<
 
-Neighbour.o : Neighbour.cpp Neighbour.hpp
+Neighbour.o : Neighbour.cpp Neighbour.hpp Vertex.hpp Chunk.hpp
 	$(CXX) $(CFLAGS) -c -o $@ $<
 
-Chunk.o : Chunk.cpp Chunk.hpp
+Chunk.o : Chunk.cpp Chunk.hpp Neighbour.hpp Vertex.hpp
 	$(CXX) $(CFLAGS) -c -o $@ $<
 
-Calculation.o : Calculation.cpp Chunk.hpp
+Calculation.o : Calculation.cpp Chunk.hpp Neighbour.hpp Vertex.hpp
 	$(CXX) $(CFLAGS) -c -o $@ $<
 
 calculation : Calculation.o Chunk.o Neighbour.o Vertex.o Params.o

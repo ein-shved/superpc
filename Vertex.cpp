@@ -1,14 +1,6 @@
 #include "Vertex.hpp"
 #include "Neighbour.hpp"
 
-void Vertex::notify_neighbor()
-{
-    if (m_type != Border) return;
-    top()->notify(this);
-    right()->notify(this);
-    bottom()->notify(this);
-    left()->notify(this);
-}
 size_t Vertex::degree(const ::Neighbour *nb)
 {
     size_t result = 0;
@@ -21,8 +13,4 @@ size_t Vertex::degree(const ::Neighbour *nb)
         }
     }
     return result;
-}
-void NeighbourVertex::notify (Vertex *nb)
-{
-    m_neighbour.notify(this, nb);
 }

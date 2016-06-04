@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <iostream>
-#include <omp.h>
 
 using namespace std;
 
@@ -14,6 +13,7 @@ Chunk::Chunk(istream &chunkfile, istream &fullfile,
     , f_hole(hole)
     , f_zero(zero)
     , m_T(t)
+    , m_none_border(0)
 {
     size_t index;
     chunkfile >> m_rank;
@@ -43,7 +43,12 @@ Chunk::Chunk(istream &chunkfile, istream &fullfile,
     {
         m_iterators.push_back(it);
     }
-
+    sort(m_iterators.begin(), m_iterators.end(), vertex_comporator);
+    for (NeighbourSet::iterator it = m_neighbors.begin();
+            it != m_neighbors.end(); ++it)
+    {
+        m_it_neighbors.push_back(it);
+    }
 }
 void Chunk::connect(const std::vector<int> &decomposition, const ItMapping &map)
 {
@@ -51,6 +56,9 @@ void Chunk::connect(const std::vector<int> &decomposition, const ItMapping &map)
             ++it)
     {
         connect (decomposition, map, *it);
+        if (it->type() ==it->I) {
+            m_none_border++;
+        }
     }
 }
 void Chunk::connect(const Mapping &decomposition, const ItMapping &map,
@@ -187,4 +195,15 @@ void Chunk::result (Values &vals)
     {
         vals[i] = *it;
     }
+}
+bool Chunk::vertex_comporator(VertexSet::iterator &v1,
+            VertexSet::iterator &v2)
+{
+    if (v1->type() == Vertex::B && v2->type() != Vertex::B) {
+        return true;
+    }
+    if (v2->type() == Vertex::B && v1->type() != Vertex::B) {
+        return false;
+    }
+    return v1->distance() < v2->distance();
 }
