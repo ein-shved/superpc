@@ -28,7 +28,9 @@ mkdir -p $DIR
 echo ./decompositor -n $NET -m $NET -p $PROC $HOLES -o $DIR
 ./decompositor -n $NET -m $NET -p $PROC $HOLES -o $DIR
 
-if [ $PROC -le 32 ]; then
+if [ $PROC -le 1 ]; then
+    REALTIME=02:00:00
+elif [ $PROC -le 32 ]; then
     REALTIME=01:00:00
 elif [ $PROC -le 64 ]; then
     REALTIME=00:30:00
@@ -53,8 +55,8 @@ fi
 NAME=$DIR-\$TIME
 RES=/gpfs/data/edu-vmk-stud14-521-15/lab-pg/results/
 mkdir -p \$RES
-echo mpisubmit.bg -n $PROC -w $REALTIME -e "OMP_NUM_THREADS=2" --stdout=\$RES/\$NAME.out --stderr=\$RES/\$NAME.err calculation -- -n $NET -m $NET -T \$TIME -o \$RES/\$NAME.ppm -d /gpfs/data/edu-vmk-stud14-521-15/lab-pg/$DIR
-mpisubmit.bg -n $PROC -w $REALTIME -e "OMP_NUM_THREADS=2" --stdout=\$RES/\$NAME.out --stderr=\$RES/\$NAME.err calculation -- -n $NET -m $NET -T \$TIME -o \$RES/\$NAME.ppm -d /gpfs/data/edu-vmk-stud14-521-15/lab-pg/$DIR
+echo mpisubmit.bg -n $PROC -w $REALTIME -e "OMP_NUM_THREADS=1" --stdout=\$RES/\$NAME.out --stderr=\$RES/\$NAME.err calculation -- -n $NET -m $NET -T \$TIME -o \$RES/\$NAME.ppm -d /gpfs/data/edu-vmk-stud14-521-15/lab-pg/$DIR
+mpisubmit.bg -n $PROC -w $REALTIME -e "OMP_NUM_THREADS=1" --stdout=\$RES/\$NAME.out --stderr=\$RES/\$NAME.err calculation -- -n $NET -m $NET -T \$TIME -o \$RES/\$NAME.ppm -d /gpfs/data/edu-vmk-stud14-521-15/lab-pg/$DIR
 
 EOS
 
