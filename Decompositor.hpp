@@ -155,8 +155,7 @@ public:
             if (!hole(p)) {
                 size_t v = sort_chunks[o_part[i]].second;
                 sort_chunks[o_part[i]] =
-                    std::pair<idx_t, size_t>(o_part[i],
-                            std::min(sqrt(p.first*p.first + p.second*p.second),(double)v));
+                    std::pair<idx_t, size_t>(o_part[i], std::min(i,v));
             }
         }
         std::sort(sort_chunks.begin(), sort_chunks.end(), [](
