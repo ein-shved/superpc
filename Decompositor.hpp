@@ -11,6 +11,8 @@
 #include <sstream>
 #include <iostream>
 #include <set>
+#include <map>
+#include <algorithm>
 
 class Decompositor {
 
@@ -143,7 +145,29 @@ public:
         ppm << m_N << " " << m_M << std::endl;
         ppm << 255 << std::endl;
         std::fstream ranks[m_proc];
-        std::set<idx_t> empty;
+
+        std::vector <std::pair<idx_t, size_t> > sort_chunks;
+        for (size_t i = 0; i < m_proc; ++i) {
+            sort_chunks.push_back(std::pair<idx_t, size_t>(i, m_M*m_N + 10));
+        }
+        for (size_t i = 0; i < (size_t)nvtxs; ++i) {
+            position p = pos(i);
+            if (!hole(p)) {
+                size_t v = sort_chunks[o_part[i]].second;
+                sort_chunks[o_part[i]] =
+                    std::pair<idx_t, size_t>(o_part[i], std::min(i,v));
+            }
+        }
+        std::sort(sort_chunks.begin(), sort_chunks.end(), [](
+                    const std::pair<idx_t, size_t> &a,
+                    const std::pair<idx_t, size_t> &b) -> int {
+                return a.second < b.second;
+                });
+        std::map <idx_t, idx_t> sort_map;
+        for (size_t i = 0; i < m_proc; ++i) {
+            sort_map[sort_chunks[i].first] = i;
+        }
+
         for (size_t i=0; i< m_proc; ++i) {
             std::stringstream name;
             name << m_path << "/" << i;
@@ -162,21 +186,21 @@ public:
                 }
                 ppm << 255 << " " << 255 << " " << 255 << std::endl;
             } else {
-                global << o_part[i] << std::endl;
-                ranks[o_part[i]] << i << std::endl;
+                global << sort_map[o_part[i]] << std::endl;
+                ranks [sort_map[o_part[i]]] << i << std::endl;
                 ssize_t n1 =index(position(p.first - 1, p.second));
                 ssize_t n2 =index(position(p.first + 1, p.second));
                 ssize_t n3 =index(position(p.first, p.second - 1));
                 ssize_t n4 =index(position(p.first, p.second + 1));
                 if (n1 < 0 || n2 < 0 || n3 < 0 || n4 < 0 ||
-                    o_part[i] != o_part[n1] ||
-                    o_part[i] != o_part[n2] ||
-                    o_part[i] != o_part[n3] ||
-                    o_part[i] != o_part[n4])
+                    sort_map[o_part[i]] != sort_map[o_part[n1]] ||
+                    sort_map[o_part[i]] != sort_map[o_part[n2]] ||
+                    sort_map[o_part[i]] != sort_map[o_part[n3]] ||
+                    sort_map[o_part[i]] != sort_map[o_part[n4]])
                 {
                     ppm << 0 << " " << 0 << " " << 0 << std::endl;
                 } else {
-                    double v = o_part[i];
+                    double v = sort_map[o_part[i]];
                     v /= m_proc;
                     ppm << heat::R(v) << " " << heat::G(v) << " " << heat::B(v) << std::endl;
                 }
@@ -186,7 +210,6 @@ public:
             ranks[i].close();
         }
         global.close();
-        std::cout << "Extra procs: " << empty.size() << std::endl;
 
         delete [] xadj;
         delete [] adjncy;
