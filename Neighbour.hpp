@@ -36,11 +36,16 @@ public:
         int flag;
         if (m_step >= step()) return false;
         if (m_step == 0) {
+            //sync();
             finish(f);
             return true;
         }
         MPI_Test(&m_rcv_req, &flag, MPI_STATUS_IGNORE);
         if (!flag) return false;
+        sync();
+        if (!sync_shared()) {
+            return false;
+        }
         finish(f);
         return true;
     }
@@ -54,6 +59,8 @@ public:
             return;
         }
         MPI_Wait(&m_rcv_req, MPI_STATUS_IGNORE);
+        sync();
+        sync_shared(true);
         finish(f);
     }
 private:
@@ -78,17 +85,24 @@ private:
     }
     void finish_rcv() const;
     void finish_send() const;
+    void check_shared() const;
+    void check_shared(const Vertex *v) const;
+    bool sync_shared(bool wait = false) const;
+    bool sync_shared(bool wait, const Vertex *inner) const;
+    bool synced(bool wait = false) const;
+    void sync() const;
 
 private:
     Chunk &m_chunk;
     int m_rank;
     mutable NeighborVertexSet m_vertecies;
-    mutable PtrVertexSet m_border;
+    mutable PtrVertexSet m_border, m_shared;
     mutable DoubleVector m_send;
     mutable DoubleVector m_receive;
     const Functor &m_zero;
     mutable size_t m_step;
     mutable MPI_Request m_snd_req, m_rcv_req;
+    mutable bool m_synced;
 };
 
 #endif /* Neighbour.hpp */

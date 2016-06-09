@@ -29,20 +29,22 @@ public:
     size_t step(const F &f)
     {
         int neighbors = m_neighbors.size();
+        int omp_num = std::max(1,omp_get_num_procs());
         ++m_step;
 #pragma omp parallel
         {
 #pragma omp for
             for (int i = 0; i<(int)m_none_border; ++i){
                 VertexSet:: iterator &it = m_iterators[i];
-                if (neighbors  > 0 &&
-                         omp_get_thread_num() < (int)m_neighbors.size() &&
-                         i % 8 == 0)
+                int omp_n = omp_get_thread_num();
+                while (neighbors  > 0 &&  i % 8 == 0 &&
+                        omp_n < (int)m_neighbors.size())
                 {
 #pragma omp critical
-                    if (m_it_neighbors[omp_get_thread_num()]->try_step(f)) {
+                    if (m_it_neighbors[omp_n]->try_step(f)) {
                         --neighbors;
                     }
+                    omp_n += omp_num;
                 }
                 it->set(f(*it, *it->top(), *it->right(), *it->bottom(),
                             *it->left(), m_step, it->x(), it->y()));
